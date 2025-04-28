@@ -1,15 +1,18 @@
 "use client";
 
 import { signIn, signOut, useSession } from "next-auth/react";
+import { motion } from "framer-motion";
 
 export default function LoginButton() {
   const { data: session, status } = useSession();
+
+  const baseButtonClasses = "rounded-full px-6 py-3 font-semibold text-sm sm:text-base transition-all duration-300 flex items-center justify-center cursor-pointer";
 
   if (status === "loading") {
     return (
       <button
         disabled
-        className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center bg-gray-100 dark:bg-gray-800 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+        className={`${baseButtonClasses} bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed`}
       >
         Loading...
       </button>
@@ -18,11 +21,17 @@ export default function LoginButton() {
 
   if (session) {
     return (
-      <div>
-        <button>Signed in as {session.user?.name}</button>
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-gray-600 dark:text-gray-400 text-sm sm:text-base"
+        >
+          Signed in as <span className="font-semibold">{session.user?.name}</span>
+        </motion.div>
         <button
           onClick={() => signOut()}
-          className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+          className={`${baseButtonClasses} border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800`}
         >
           Sign Out
         </button>
@@ -32,8 +41,8 @@ export default function LoginButton() {
 
   return (
     <button
-      onClick={() => signIn("github")}
-      className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
+      onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
+      className={`${baseButtonClasses} bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:opacity-90 shadow-md`}
     >
       Sign in with GitHub
     </button>

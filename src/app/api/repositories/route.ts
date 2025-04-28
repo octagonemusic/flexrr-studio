@@ -29,3 +29,25 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function GET(req: Request) {
+  try {
+    const session = await getServerSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await connectDB();
+    
+    const repositories = await Repository.find({ userId: session.user.id })
+      .sort({ createdAt: -1 });
+
+    return NextResponse.json(repositories);
+  } catch (error) {
+    console.error("Error fetching repositories:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}

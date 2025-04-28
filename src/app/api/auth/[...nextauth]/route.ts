@@ -7,8 +7,11 @@ import { DefaultSession } from "next-auth";
 declare module "next-auth" {
   interface Session {
     user: {
-      id?: string;
-    } & DefaultSession["user"]
+      id: string;
+      email: string;
+      name: string;
+      image?: string;
+    } & DefaultSession["user"];
   }
 }
 
@@ -25,41 +28,25 @@ const handler = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
-      try {
-        await connectDB();
-        
-        // Store or update user
-        await User.findOneAndUpdate(
-          { email: user.email },
-          {
-            name: user.name,
-            email: user.email,
-            image: user.image,
-          },
-          { upsert: true }
-        );
-        
-        return true;
-      } catch (error) {
-        console.error("Error saving user:", error);
-        return false;
-      }
+    async signIn({ user, account, profile }) {
+      if (!user.email) return false;
+      
+      await connectDB();
+      
+      const dbUser = await User.findOneAndUpdate(
+        { email: user.email },
+        { name: user.name, email: user.email, image: user.image },
+        { upsert: true, new: true }
+      );
+      
+      return true;
     },
     async session({ session, token }) {
-      try {
-        await connectDB();
-        const user = await User.findOne({ email: session.user?.email });
-        
-        if (user && session.user) {
-          session.user.id = user._id.toString();
-        }
-        
-        return session;
-      } catch (error) {
-        console.error("Error in session callback:", error);
-        return session;
+      if (session.user) {
+        const dbUser = await User.findOne({ email: session.user.email });
+        session.user.id = dbUser._id.toString();
       }
+      return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,

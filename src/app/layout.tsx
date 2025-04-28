@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { montserrat } from "./fonts";
 import { getServerSession } from "next-auth";
 import SessionProvider from "@/components/SessionProvider";
 import "./globals.css";
@@ -22,7 +23,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${montserrat.variable}`}>
         <SessionProvider session={session}>
           {children}
         </SessionProvider>
