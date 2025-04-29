@@ -3,6 +3,7 @@ import { montserrat } from "./fonts";
 import { getServerSession } from "next-auth";
 import SessionProvider from "@/components/SessionProvider";
 import "./globals.css";
+import LoginButton from "@/components/LoginButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,6 +26,9 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${montserrat.variable}`}>
         <SessionProvider session={session}>
+          <div className="absolute top-4 right-4 z-50">
+            <LoginButton />
+          </div>
           {children}
         </SessionProvider>
       </body>

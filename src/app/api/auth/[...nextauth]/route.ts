@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { AuthOptions } from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import { connectDB } from "@/lib/mongoose";
 import { User } from "@/models/User";
@@ -15,7 +15,7 @@ declare module "next-auth" {
   }
 }
 
-const handler = NextAuth({
+export const authOptions: AuthOptions = {
   providers: [
     GithubProvider({
       clientId: process.env.GITHUB_ID!,
@@ -43,13 +43,23 @@ const handler = NextAuth({
     },
     async session({ session, token }) {
       if (session.user) {
-        const dbUser = await User.findOne({ email: session.user.email });
-        session.user.id = dbUser._id.toString();
+        try {
+          const dbUser = await User.findOne({ email: session.user.email });
+          if (!dbUser) {
+            throw new Error('User not found');
+          }
+          session.user.id = dbUser._id.toString();
+        } catch (error) {
+          console.error('Error getting user session:', error);
+          throw error;
+        }
       }
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };

@@ -66,9 +66,9 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Repositories</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Flexrr Projects</h1>
         {repositories.length === 0 ? (
-          <div className="mt-8 text-center text-gray-600 dark:text-gray-300">
+          <div className="mt-24 text-center text-gray-600 dark:text-gray-300">
             No repositories found. Create your first repository to get started.
           </div>
         ) : (

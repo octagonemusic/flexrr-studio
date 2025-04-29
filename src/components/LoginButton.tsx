@@ -41,7 +41,7 @@ export default function LoginButton() {
 
   return (
     <button
-      onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
+      onClick={() => signIn("github", { callbackUrl: "/projects" })}
       className={`${baseButtonClasses} bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:opacity-90 shadow-md`}
     >
       Sign in with GitHub
