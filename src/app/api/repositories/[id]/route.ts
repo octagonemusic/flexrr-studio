@@ -5,35 +5,35 @@ import { isValidObjectId } from "mongoose";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> },
 ) {
   // Wait for params to resolve
-  const { id } = await params;
+  const { id } = await context.params;
 
   if (!id || !isValidObjectId(id)) {
     return NextResponse.json(
       { error: "Invalid repository ID" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   try {
     await connectDB();
     const repository = await Repository.findById(id);
-    
+
     if (!repository) {
       return NextResponse.json(
         { error: "Repository not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     return NextResponse.json(repository);
   } catch (error) {
-    console.error('Error fetching repository:', error);
+    console.error("Error fetching repository:", error);
     return NextResponse.json(
       { error: "Failed to fetch repository" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

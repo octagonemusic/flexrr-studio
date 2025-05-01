@@ -6,10 +6,10 @@ import { getGithubAccessToken } from "@/lib/getGithubToken";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { id } = await params;
+    const { id } = await context.params;
 
     await connectDB();
     const repository = await Repository.findById(id);
