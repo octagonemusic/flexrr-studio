@@ -3,8 +3,6 @@ import { connectDB } from "@/lib/mongoose";
 import { Repository } from "@/models/Repository";
 import { Octokit } from "@octokit/rest";
 import { getGithubAccessToken } from "@/lib/getGithubToken";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../../auth/[...nextauth]/route";
 
 export async function GET(
   request: Request,
