@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "../../auth/[...nextauth]/options";
 import { connectDB } from "@/lib/mongoose";
 import { Repository } from "@/models/Repository";
 import { NextResponse } from "next/server";
