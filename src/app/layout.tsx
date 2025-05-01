@@ -1,19 +1,20 @@
-import { Geist, Geist_Mono } from "next/font/google";
-import { montserrat } from "./fonts";
+import { montserrat, geistMono, geistSans } from "./fonts";
 import { getServerSession } from "next-auth";
 import SessionProvider from "@/components/SessionProvider";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import "./globals.css";
 import LoginButton from "@/components/LoginButton";
+import { Toaster } from "react-hot-toast";
+import { Metadata } from "next";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Define metadata directly in layout.tsx
+export const metadata: Metadata = {
+  title: "Flexrr Studio",
+  description: "Create, manage, and deploy web applications with Flexrr Studio",
+  icons: {
+    icon: "/icon-flexrr.png",
+  },
+};
 
 export default async function RootLayout({
   children,
@@ -24,13 +25,21 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${montserrat.variable}`}>
-        <SessionProvider session={session}>
-          <div className="absolute top-4 right-4 z-50">
-            <LoginButton />
-          </div>
-          {children}
-        </SessionProvider>
+      <body
+        className={`${montserrat.variable} ${geistSans.variable} ${geistMono.variable}`}
+      >
+        <ErrorBoundary>
+          <SessionProvider session={session}>
+            <Toaster position="top-right" />
+            {/* Only show login button on the landing page */}
+            {!session && (
+              <div className="absolute top-4 right-4 z-50">
+                <LoginButton />
+              </div>
+            )}
+            {children}
+          </SessionProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
