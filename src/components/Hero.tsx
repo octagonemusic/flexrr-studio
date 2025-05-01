@@ -88,9 +88,9 @@ export default function Hero() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mb-10"
             >
-              Flexrr is a powerful headless CMS and Next.js framework that
-              empowers developers to build blazing-fast, SEO-friendly websites
-              with ease.
+              Flexrr is a flexible light-weight website starter that empowers
+              developers & business owners to build blazing-fast, SEO-friendly
+              static websites with ease.
             </motion.p>
 
             <motion.div
