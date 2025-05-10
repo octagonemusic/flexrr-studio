@@ -32,11 +32,7 @@ export default async function RootLayout({
           <SessionProvider session={session}>
             <Toaster position="top-right" />
             {/* Only show login button on the landing page */}
-            {!session && (
-              <div className="absolute top-4 right-4 z-50">
-                <LoginButton />
-              </div>
-            )}
+            {!session && <div className="absolute top-4 right-4 z-50"></div>}
             {children}
           </SessionProvider>
         </ErrorBoundary>
