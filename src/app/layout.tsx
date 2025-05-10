@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import SessionProvider from "@/components/SessionProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import "./globals.css";
-import LoginButton from "@/components/LoginButton";
 import { Toaster } from "react-hot-toast";
 import { Metadata } from "next";
 
