@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -9,6 +9,7 @@ import ProjectsOverview from "@/components/Dashboard/ProjectsOverview";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ProjectList from "@/components/ProjectList";
 import { FiGrid, FiList } from "react-icons/fi";
+import AuthError from "@/components/AuthError";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -26,13 +27,6 @@ export default function Dashboard() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Handle redirecting if not authenticated
-  useEffect(() => {
-    if (status === "unauthenticated" && !isInitializing) {
-      router.push("/");
-    }
-  }, [status, router, isInitializing]);
-
   // Show loading state while authentication is in progress
   if (status === "loading" || isInitializing) {
     return (
@@ -44,9 +38,16 @@ export default function Dashboard() {
     );
   }
 
-  // Don't render the content until we're sure the user is authenticated
+  // Show auth error if not authenticated
   if (status === "unauthenticated") {
-    return null;
+    return (
+      <AppLayout>
+        <AuthError 
+          message="You need to be signed in to view your projects."
+          onRetry={() => signIn("github")}
+        />
+      </AppLayout>
+    );
   }
 
   return (

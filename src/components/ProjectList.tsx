@@ -14,6 +14,7 @@ import {
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { fetchWithAuth } from "@/lib/apiHelpers";
+import AuthError from "./AuthError";
 
 interface Repository {
   _id: string;
@@ -32,7 +33,7 @@ export default function ProjectList({ view }: ProjectListProps) {
   const router = useRouter();
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{message: string, isAuthError?: boolean} | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -53,6 +54,10 @@ export default function ProjectList({ view }: ProjectListProps) {
         ]);
 
         if (!reposResponse.ok) {
+          // Check if it's an auth error
+          if (reposResponse.status === 401) {
+            throw new Error("Authentication error: Your session may have expired");
+          }
           // If automatic retry failed or it's another error, then throw
           throw new Error("Failed to fetch repositories");
         }
@@ -88,8 +93,19 @@ export default function ProjectList({ view }: ProjectListProps) {
           }
         }
         
-        setError(err instanceof Error ? err.message : "Something went wrong");
-        toast.error("Failed to load your projects");
+        const errorMessage = err instanceof Error ? err.message : "Something went wrong";
+        const isAuthError = errorMessage.includes("Authentication") || 
+                           errorMessage.includes("auth") || 
+                           errorMessage.includes("session");
+        
+        setError({ 
+          message: errorMessage,
+          isAuthError 
+        });
+        
+        if (!isAuthError) {
+          toast.error("Failed to load your projects");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -134,31 +150,45 @@ export default function ProjectList({ view }: ProjectListProps) {
     </div>
   );
 
-  const ErrorState = ({ message }: { message: string }) => (
-    <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
-      <FiAlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-      <h3 className="text-lg font-medium text-red-800 dark:text-red-200 mb-2">
-        Failed to load projects
-      </h3>
-      <p className="text-red-600 dark:text-red-300">{message}</p>
-      <button
-        onClick={() => {
-          setLastRetryTime(Date.now());
-          setRetryCount(prev => prev + 1);
-        }}
-        className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-      >
-        Try Again
-      </button>
-    </div>
-  );
+  const ErrorState = ({ message, isAuthError }: { message: string, isAuthError?: boolean }) => {
+    if (isAuthError) {
+      return (
+        <AuthError 
+          message="Your session has expired or is invalid. Please sign in again to view your projects."
+          onRetry={() => {
+            setLastRetryTime(Date.now());
+            setRetryCount(prev => prev + 1);
+          }}
+        />
+      );
+    }
+    
+    return (
+      <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
+        <FiAlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-red-800 dark:text-red-200 mb-2">
+          Failed to load projects
+        </h3>
+        <p className="text-red-600 dark:text-red-300">{message}</p>
+        <button
+          onClick={() => {
+            setLastRetryTime(Date.now());
+            setRetryCount(prev => prev + 1);
+          }}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  };
 
   if (isLoading) {
     return <LoadingState />;
   }
 
   if (error) {
-    return <ErrorState message={error} />;
+    return <ErrorState message={error.message} isAuthError={error.isAuthError} />;
   }
 
   if (repositories.length === 0) {

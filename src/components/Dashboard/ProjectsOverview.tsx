@@ -13,6 +13,7 @@ import {
   FiExternalLink,
 } from "react-icons/fi";
 import { fetchWithAuth } from "@/lib/apiHelpers";
+import AuthError from "@/components/AuthError";
 
 interface Repository {
   _id: string;
@@ -35,7 +36,7 @@ export default function ProjectsOverview() {
     [],
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{message: string, isAuthError?: boolean} | null>(null);
   const [latestVersionInfo, setLatestVersionInfo] = useState<
     Record<string, LatestVersionInfo>
   >({});
@@ -57,6 +58,9 @@ export default function ProjectsOverview() {
         ]);
         
         if (!reposResponse.ok) {
+          if (reposResponse.status === 401) {
+            throw new Error("Authentication error: Your session has expired");
+          }
           throw new Error("Failed to fetch projects");
         }
         
@@ -112,7 +116,15 @@ export default function ProjectsOverview() {
           }
         }
         
-        setError(err instanceof Error ? err.message : "Something went wrong");
+        const errorMessage = err instanceof Error ? err.message : "Something went wrong";
+        const isAuthError = errorMessage.includes("Authentication") || 
+                            errorMessage.includes("auth") || 
+                            errorMessage.includes("session");
+        
+        setError({ 
+          message: errorMessage, 
+          isAuthError 
+        });
       } finally {
         setIsLoading(false);
       }
@@ -148,13 +160,25 @@ export default function ProjectsOverview() {
   }
 
   if (error) {
+    if (error.isAuthError) {
+      return (
+        <AuthError 
+          message="Your session has expired or is invalid. Please sign in again to view your projects."
+          onRetry={() => {
+            setLastRetryTime(Date.now());
+            setRetryCount(prev => prev + 1);
+          }}
+        />
+      );
+    }
+    
     return (
       <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
         <FiAlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-red-800 dark:text-red-200 mb-2">
           Failed to load projects
         </h3>
-        <p className="text-red-600 dark:text-red-300">{error}</p>
+        <p className="text-red-600 dark:text-red-300">{error.message}</p>
         <button
           onClick={() => {
             setLastRetryTime(Date.now());

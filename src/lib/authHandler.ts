@@ -1,137 +1,49 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
-import toast from "react-hot-toast";
 
 /**
- * Custom hook for handling authentication states and token refreshes
+ * Simple hook for authentication functionality
+ * No auto-retry or redirects - just basic auth features
  */
 export function useAuth() {
-  const { data: session, status, update } = useSession();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   /**
-   * Refresh the session when token issues are detected
+   * Sign in with GitHub
+   * @param callbackUrl Optional URL to redirect to after sign in
    */
-  const refreshSession = useCallback(async () => {
-    if (isRefreshing) return;
-    
-    try {
-      setIsRefreshing(true);
-      await update(); // Try updating the session first
-      
-      // If the update doesn't solve the token issue, sign in again
-      if (!session?.user?.accessToken) {
-        await silentLogin();
-      }
-    } catch (error) {
-      console.error("Failed to refresh session:", error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [session, isRefreshing, update]);
+  const login = async (callbackUrl?: string) => {
+    await signIn("github", { 
+      callbackUrl: callbackUrl || window.location.pathname,
+      redirect: true
+    });
+  };
 
   /**
-   * Silent login - redirects the user to GitHub auth but returns to the current page
+   * Sign out the current user
    */
-  const silentLogin = useCallback(async () => {
-    const currentPath = window.location.pathname;
-    toast.loading("Refreshing your session...", { id: "session-refresh" });
-    
-    try {
-      await signIn("github", { 
-        callbackUrl: currentPath,
-        redirect: true
-      });
-      toast.success("Session refreshed", { id: "session-refresh" });
-    } catch (error) {
-      console.error("Silent login failed:", error);
-      toast.error("Couldn't refresh your session", { id: "session-refresh" });
-    }
-  }, []);
+  const logout = async () => {
+    await signOut({ redirect: true, callbackUrl: "/" });
+  };
 
   /**
-   * Handle API authentication errors
+   * Check if the current status is authenticated
    */
-  const handleApiAuthError = useCallback(async () => {
-    if (status === "authenticated" && !session?.user?.accessToken) {
-      await refreshSession();
-    }
-  }, [status, session, refreshSession]);
-
-  /**
-   * Hook to handle global fetch responses and check for auth errors
-   */
-  const fetchWithAuth = useCallback(async (url: string, options?: RequestInit) => {
-    try {
-      const response = await fetch(url, options);
-      
-      // Check for auth errors
-      if (response.status === 401) {
-        // Only refresh if we think we're authenticated
-        if (status === "authenticated") {
-          await refreshSession();
-          // Retry the request after refresh
-          return fetch(url, options);
-        }
-        
-        // If not authenticated, redirect to login
-        router.push("/");
-        throw new Error("Authentication required");
-      }
-      
-      return response;
-    } catch (error) {
-      // If this is a network error, don't try to refresh
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw error;
-      }
-      
-      // For other errors, check if they might be auth-related
-      if (status === "authenticated") {
-        await handleApiAuthError();
-      }
-      
-      throw error;
-    }
-  }, [status, refreshSession, router, handleApiAuthError]);
-
-  // Set up global event listener for auth errors
-  useEffect(() => {
-    const handleAuthEvent = (event: MessageEvent) => {
-      if (
-        event.data?.type === "AUTH_ERROR" && 
-        status === "authenticated"
-      ) {
-        refreshSession();
-      }
-    };
-
-    window.addEventListener("message", handleAuthEvent);
-    return () => window.removeEventListener("message", handleAuthEvent);
-  }, [status, refreshSession]);
+  const isAuthenticated = status === "authenticated" && !!session?.user;
 
   return {
     session,
     status,
-    isRefreshing,
-    refreshSession,
-    silentLogin,
-    fetchWithAuth,
-    signOut,
+    isAuthenticated,
+    login,
+    logout,
   };
 }
 
 /**
- * Broadcasts an auth error event that can be caught by the useAuth hook
+ * Helper function to log auth errors
  */
-export function broadcastAuthError() {
-  window.postMessage(
-    {
-      type: "AUTH_ERROR",
-      message: "Authentication error detected",
-    },
-    window.location.origin
-  );
+export function logAuthError(errorInfo?: string) {
+  console.error("Authentication error detected", errorInfo);
 }

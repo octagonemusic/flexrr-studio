@@ -24,6 +24,7 @@ import {
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { fetchWithAuth } from "@/lib/apiHelpers";
+import AuthError from "@/components/AuthError";
 import {
   Dialog,
   DialogContent,
@@ -63,7 +64,7 @@ export default function ProjectDetails() {
   const router = useRouter();
   const [project, setProject] = useState<Repository | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{message: string, isAuthError?: boolean} | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [isRenamingLoading, setIsRenamingLoading] = useState(false); // New state for rename loading
@@ -97,6 +98,9 @@ export default function ProjectDetails() {
       ]);
       
       if (!projectResponse.ok) {
+        if (projectResponse.status === 401) {
+          throw new Error("Authentication error: Your session has expired");
+        }
         throw new Error("Failed to fetch project details");
       }
       
@@ -108,8 +112,16 @@ export default function ProjectDetails() {
         setLatestVersion(version);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
-      toast.error("Failed to load project details");
+      const errorMessage = err instanceof Error ? err.message : "Something went wrong";
+      const isAuthError = errorMessage.includes("Authentication") || 
+                           errorMessage.includes("auth") || 
+                           errorMessage.includes("session");
+      
+      setError({ message: errorMessage, isAuthError });
+      
+      if (!isAuthError) {
+        toast.error("Failed to load project details");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -148,16 +160,25 @@ export default function ProjectDetails() {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Authentication error: Your session has expired");
+        }
         throw new Error("Failed to update repository");
       }
 
       await fetchData();
       toast.success("Project updated successfully", { id: "update-toast" });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to update repository",
-      );
-      toast.error("Update failed", { id: "update-toast" });
+      const errorMessage = err instanceof Error ? err.message : "Failed to update repository";
+      const isAuthError = errorMessage.includes("Authentication") || 
+                          errorMessage.includes("auth") || 
+                          errorMessage.includes("session");
+      
+      setError({ message: errorMessage, isAuthError });
+      
+      if (!isAuthError) {
+        toast.error("Update failed", { id: "update-toast" });
+      }
     } finally {
       setIsUpdating(false);
     }
@@ -177,6 +198,9 @@ export default function ProjectDetails() {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Authentication error: Your session has expired");
+        }
         throw new Error("Failed to rename repository");
       }
 
@@ -185,10 +209,16 @@ export default function ProjectDetails() {
       reset();
       toast.success("Project renamed successfully", { id: "rename-toast" });
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to rename repository",
-      );
-      toast.error("Rename failed", { id: "rename-toast" });
+      const errorMessage = err instanceof Error ? err.message : "Failed to rename repository";
+      const isAuthError = errorMessage.includes("Authentication") || 
+                          errorMessage.includes("auth") || 
+                          errorMessage.includes("session");
+      
+      setError({ message: errorMessage, isAuthError });
+      
+      if (!isAuthError) {
+        toast.error("Rename failed", { id: "rename-toast" });
+      }
     } finally {
       setIsRenamingLoading(false);
     }
@@ -209,6 +239,9 @@ export default function ProjectDetails() {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Authentication error: Your session has expired");
+        }
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to delete project");
       }
@@ -277,6 +310,19 @@ export default function ProjectDetails() {
   }
 
   if (error || !project) {
+    // Handle authentication errors
+    if (error?.isAuthError) {
+      return (
+        <AppLayout>
+          <AuthError 
+            message="Your session has expired or is invalid. Please sign in again to view this project."
+            onRetry={() => fetchData()}
+          />
+        </AppLayout>
+      );
+    }
+    
+    // Handle other errors
     return (
       <AppLayout>
         <div className="flex flex-col items-center justify-center h-96">
@@ -285,7 +331,7 @@ export default function ProjectDetails() {
             Project Not Found
           </h2>
           <p className="text-gray-600 dark:text-gray-300 mb-6 text-center max-w-md">
-            {error || "We couldn't find the project you're looking for."}
+            {error?.message || "We couldn't find the project you're looking for."}
           </p>
           <button
             onClick={() => router.push("/projects")}

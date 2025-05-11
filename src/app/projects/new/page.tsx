@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { fetchWithAuth } from "@/lib/apiHelpers";
+import { useSession, signIn } from "next-auth/react";
+import AuthError from "@/components/AuthError";
 
 const formSchema = z.object({
   name: z
@@ -38,13 +40,14 @@ interface ApiError {
 }
 
 interface ErrorState {
-  type: "api" | "validation" | "system";
+  type: "api" | "validation" | "system" | "auth";
   message: string;
   details?: string;
 }
 
 export default function NewProject() {
   const router = useRouter();
+  const { status } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorState | null>(null);
   const [envVars, setEnvVars] = useState<EnvVars | null>(null);
@@ -102,6 +105,16 @@ export default function NewProject() {
 
       if (!response.ok) {
         const apiError = responseData as ApiError;
+
+        // Handle authentication errors specifically
+        if (response.status === 401) {
+          setError({
+            type: "auth",
+            message: "Your session has expired",
+            details: "Please sign in again to continue creating your project."
+          });
+          return;
+        }
 
         switch (apiError.code) {
           case "github_error":
@@ -185,40 +198,71 @@ export default function NewProject() {
   const sectionClasses =
     "space-y-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm";
 
-  const ErrorDisplay = ({ error }: { error: ErrorState }) => (
-    <div className="mb-8 rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
-      <div className="p-4">
-        <div className="flex items-center">
-          <svg
-            className="h-5 w-5 text-red-400"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <h3 className="ml-2 text-sm font-medium text-red-800 dark:text-red-200">
-            {error.type === "api"
-              ? "API Error"
-              : error.type === "validation"
-                ? "Validation Error"
-                : "System Error"}
-          </h3>
-        </div>
-        <div className="mt-2 text-sm text-red-700 dark:text-red-200">
-          <p>{error.message}</p>
-          {error.details && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-300">
-              {error.details}
-            </p>
-          )}
+  const ErrorDisplay = ({ error }: { error: ErrorState }) => {
+    // For authentication errors, show the AuthError component
+    if (error.type === "auth") {
+      return (
+        <AuthError 
+          message={error.message}
+          code={error.type}
+          onRetry={() => signIn("github")}
+        />
+      );
+    }
+    
+    // For other error types
+    return (
+      <div className="mb-8 rounded-lg border border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+        <div className="p-4">
+          <div className="flex items-center">
+            <svg
+              className="h-5 w-5 text-red-400"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <h3 className="ml-2 text-sm font-medium text-red-800 dark:text-red-200">
+              {error.type === "api"
+                ? "API Error"
+                : error.type === "validation"
+                  ? "Validation Error"
+                  : "System Error"}
+            </h3>
+          </div>
+          <div className="mt-2 text-sm text-red-700 dark:text-red-200">
+            <p>{error.message}</p>
+            {error.details && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-300">
+                {error.details}
+              </p>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  // If not authenticated, show auth error
+  if (status === "unauthenticated") {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+        <div className="max-w-4xl mx-auto px-4">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+            Create New Flexrr Project
+          </h1>
+          
+          <AuthError
+            message="You need to be signed in to create a new project"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">

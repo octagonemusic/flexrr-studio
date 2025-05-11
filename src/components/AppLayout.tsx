@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut, signIn } from "next-auth/react";
 import {
   FiHome,
   FiGitBranch,
@@ -19,6 +19,7 @@ import {
   FiSun,
   FiHelpCircle,
   FiInfo,
+  FiGithub,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 
@@ -69,15 +70,44 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const handleLogout = useCallback(async () => {
     try {
       toast.loading("Signing out...", { id: "logout" });
-      await signOut({ redirect: false });
+      await signOut({ redirect: true, callbackUrl: "/" });
       toast.success("Signed out successfully", { id: "logout" });
-      router.push("/");
     } catch (error) {
       toast.error("Failed to sign out", { id: "logout" });
     }
-  }, [router]);
+  }, []);
 
   if (!session) {
+    // For any protected route, if there's no session, show auth error
+    if (pathname !== "/") {
+      return (
+        <div className="flex-1 p-6">
+          <div className="min-h-[60vh] flex items-center justify-center p-4">
+            <div className="w-full max-w-md p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg text-center">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FiUser className="w-8 h-8 text-red-600 dark:text-red-400" />
+              </div>
+              
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                Authentication Required
+              </h2>
+              
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                You need to be signed in to view this page.
+              </p>
+              
+              <button
+                onClick={() => signIn("github")}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium flex items-center justify-center mx-auto"
+              >
+                <FiGithub className="w-4 h-4 mr-2" />
+                Sign In with GitHub
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return <>{children}</>;
   }
 
