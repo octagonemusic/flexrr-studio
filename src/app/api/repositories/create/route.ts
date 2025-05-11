@@ -231,11 +231,14 @@ export async function POST(req: Request) {
       version = packageJson.version || "1.0.0";
     }
 
-    // Save to database
+    // Check if userId is a valid MongoDB ObjectId
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(session.user.id);
+
+    // Save to database - if userId is not a valid ObjectId, omit it and use email as primary identifier
     const repository = await Repository.create({
       name,
       description: `Flexrr project created from template`,
-      userId: session.user.id,
+      ...(isValidObjectId ? { userId: session.user.id } : {}), // Only include userId if it's a valid ObjectId
       userEmail: session.user.email, // Store email as a more secure secondary identifier
       githubUrl: newRepo.data.html_url,
       envVars,

@@ -7,6 +7,7 @@ const RepositorySchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: false, // Make this field optional
     },
     // User email as a more secure secondary identifier
     userEmail: {

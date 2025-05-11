@@ -99,10 +99,14 @@ export async function POST(req: Request) {
 
     await connectDB();
 
+    // Check if userId is a valid MongoDB ObjectId
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(session.user.id);
+
     const repository = await Repository.create({
       name,
       description,
-      userId: session.user.id,
+      ...(isValidObjectId ? { userId: session.user.id } : {}), // Only include userId if it's a valid ObjectId
+      userEmail: session.user.email, // Always include email as a fallback identifier
     });
 
     return NextResponse.json(repository);
