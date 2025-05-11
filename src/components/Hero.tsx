@@ -181,22 +181,22 @@ export default function Hero({ session }: HeroProps) {
                 </div>
               </div>
 
-              {/* Floating elements */}
-              <div className="absolute -right-8 -top-8 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg">
+              {/* Floating elements - hidden on mobile */}
+              <div className="absolute -right-8 -top-8 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg hidden md:block">
                 <div className="flex items-center space-x-2">
                   <FiZap className="text-yellow-500 w-6 h-6" />
                   <span className="font-medium">Blazing Fast</span>
                 </div>
               </div>
 
-              <div className="absolute -left-8 top-1/3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg">
+              <div className="absolute -left-8 top-1/3 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg hidden md:block">
                 <div className="flex items-center space-x-2">
                   <FiCpu className="text-indigo-500 w-6 h-6" />
                   <span className="font-medium">API-First</span>
                 </div>
               </div>
 
-              <div className="absolute -bottom-8 left-1/4 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg">
+              <div className="absolute -bottom-8 left-1/4 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg hidden md:block">
                 <div className="flex items-center space-x-2">
                   <FiLayout className="text-green-500 w-6 h-6" />
                   <span className="font-medium">Flexible UI</span>

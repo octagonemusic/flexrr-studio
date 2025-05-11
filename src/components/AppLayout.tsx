@@ -20,6 +20,8 @@ import {
   FiHelpCircle,
   FiInfo,
   FiGithub,
+  FiMenu,
+  FiX,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 
@@ -33,7 +35,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const router = useRouter();
   const [showSettings, setShowSettings] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLElement>(null);
 
   // Handle dark mode - only runs once
   useEffect(() => {
@@ -48,6 +52,21 @@ export default function AppLayout({ children }: AppLayoutProps) {
     } else {
       document.documentElement.classList.remove("dark");
     }
+  }, []);
+  
+  // Handle window resize for sidebar and set initial state
+  useEffect(() => {
+    const handleResize = () => {
+      setSidebarOpen(window.innerWidth >= 768);
+    };
+    
+    // Set initial state based on screen size
+    handleResize();
+    
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   // Handle click outside to close settings dropdown
@@ -64,6 +83,23 @@ export default function AppLayout({ children }: AppLayoutProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  
+  // Handle window resize for sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setSidebarOpen(true);
+      }
+    };
+    
+    // Set initial state based on screen size
+    handleResize();
+    
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -122,11 +158,26 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Mobile sidebar backdrop */}
+      {sidebarOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className="md:hidden fixed inset-0 z-20 bg-black bg-opacity-50 backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <motion.aside
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        className="fixed inset-y-0 z-10 flex flex-col w-64 p-4 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow-sm"
+        ref={sidebarRef}
+        initial={{ x: -280 }}
+        animate={{ 
+          x: sidebarOpen ? 0 : -280
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="fixed inset-y-0 z-30 flex flex-col p-4 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800 shadow-md w-64"
       >
         {/* ... existing sidebar code ... */}
         <div className="py-4 px-2">
@@ -150,6 +201,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
               <Link
                 key={item.path}
                 href={item.path}
+                onClick={() => {
+                  if (window.innerWidth < 768) {
+                    setSidebarOpen(false);
+                  }
+                }}
                 className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm transition-colors ${
                   isActive(item.path)
                     ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300"
@@ -188,6 +244,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
             href="https://github.com/octagonemusic/flexrr"
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => {
+              if (window.innerWidth < 768) {
+                setSidebarOpen(false);
+              }
+            }}
             className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/30 transition-colors"
           >
             <FiExternalLink className="w-5 h-5" />
@@ -196,7 +257,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
           {/* Logout button */}
           <button
-            onClick={handleLogout}
+            onClick={() => {
+              if (window.innerWidth < 768) {
+                setSidebarOpen(false);
+              }
+              handleLogout();
+            }}
             className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors mt-2"
           >
             <FiLogOut className="w-5 h-5" />
@@ -206,13 +272,28 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </motion.aside>
 
       {/* Main content */}
-      <div className="flex flex-col flex-1 ml-64">
+      <div className="flex flex-col flex-1 transition-all duration-300 md:ml-64 w-full">
         {/* Header */}
         <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className="text-xl font-semibold text-gray-800 dark:text-white">
-            {pathname === "/projects" && "Dashboard"}
-            {pathname === "/projects/new" && "Create New Project"}
-            {pathname.match(/^\/projects\/[^/]+$/) && "Project Details"}
+          <div className="flex items-center">
+            {/* Mobile menu button */}
+            <button 
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="mr-3 md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded"
+              aria-label="Toggle sidebar"
+            >
+              {sidebarOpen ? (
+                <FiX className="w-6 h-6" />
+              ) : (
+                <FiMenu className="w-6 h-6" />
+              )}
+            </button>
+            
+            <div className="text-xl font-semibold text-gray-800 dark:text-white">
+              {pathname === "/projects" && "Dashboard"}
+              {pathname === "/projects/new" && "Create New Project"}
+              {pathname.match(/^\/projects\/[^/]+$/) && "Project Details"}
+            </div>
           </div>
 
           {/* Settings dropdown */}
