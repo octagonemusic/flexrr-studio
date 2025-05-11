@@ -49,6 +49,8 @@ export default function NewProject() {
   const [error, setError] = useState<ErrorState | null>(null);
   const [envVars, setEnvVars] = useState<EnvVars | null>(null);
   const [copied, setCopied] = useState(false);
+  const [progressStatus, setProgressStatus] = useState<string>("");
+  const [creationProgress, setCreationProgress] = useState<number>(0);
 
   const {
     register,
@@ -63,12 +65,38 @@ export default function NewProject() {
     setLoading(true);
     setError(null);
 
+    // Creation progress simulator
+    let progressInterval: NodeJS.Timeout | undefined = undefined;
+
     try {
-      const response = await fetchWithAuth("/api/repositories/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+      // Show initial progress
+      setProgressStatus("Starting project creation...");
+      setCreationProgress(10);
+
+      // Start progress simulator
+      progressInterval = setInterval(() => {
+        setCreationProgress((prev) => {
+          if (prev < 90) return prev + 10;
+          return prev;
+        });
+      }, 3000);
+
+      // Increase timeout for project creation which involves multiple GitHub API calls
+      const response = await fetchWithAuth(
+        "/api/repositories/create",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        },
+        60000,
+        true, // 60 second timeout with auto-retry on auth errors
+        (status) => {
+          setProgressStatus(status);
+        },
+      );
+
+      clearInterval(progressInterval);
 
       const responseData = await response.json();
 
@@ -116,6 +144,8 @@ export default function NewProject() {
         return;
       }
 
+      setProgressStatus("Project created successfully!");
+      setCreationProgress(100);
       setEnvVars(responseData.envVars);
       setTimeout(() => router.push("/projects"), 5000);
     } catch (err) {
@@ -128,6 +158,9 @@ export default function NewProject() {
         });
       }
     } finally {
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setLoading(false);
     }
   };
@@ -198,12 +231,22 @@ export default function NewProject() {
 
         {loading ? (
           <div className="text-center py-12">
+            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 max-w-md mx-auto mb-6">
+              <div
+                className="bg-indigo-600 h-2.5 rounded-full transition-all duration-500"
+                style={{ width: `${creationProgress}%` }}
+              ></div>
+            </div>
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
             <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Creating Your Project
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              This may take a few moments...
+            <p className="text-gray-600 dark:text-gray-400 mb-2">
+              {"Setting up your repository..."}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-500">
+              This may take up to a minute as we're setting up your GitHub
+              repository
             </p>
           </div>
         ) : (

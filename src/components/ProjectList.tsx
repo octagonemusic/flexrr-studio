@@ -48,8 +48,8 @@ export default function ProjectList({ view }: ProjectListProps) {
 
         // Use the retryOnAuth flag to enable automatic retry after token refresh
         const [reposResponse, versionResponse] = await Promise.all([
-          fetchWithAuth("/api/repositories", undefined, 5000, true),
-          fetchWithAuth("/api/repositories/latest-version", undefined, 5000, true),
+          fetchWithAuth("/api/repositories", undefined, 10000, true),
+          fetchWithAuth("/api/repositories/latest-version", undefined, 10000, true),
         ]);
 
         if (!reposResponse.ok) {
