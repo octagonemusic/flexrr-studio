@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -35,6 +35,10 @@ export default function ProjectList({ view }: ProjectListProps) {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [lastRetryTime, setLastRetryTime] = useState(0);
+  const maxRetries = 2;
+  const retryDelay = 3000; // Minimum delay between retries in ms
 
   useEffect(() => {
     const fetchRepositories = async () => {
@@ -42,15 +46,19 @@ export default function ProjectList({ view }: ProjectListProps) {
         setIsLoading(true);
         setError(null);
 
+        // Use the retryOnAuth flag to enable automatic retry after token refresh
         const [reposResponse, versionResponse] = await Promise.all([
-          fetchWithAuth("/api/repositories"),
-          fetchWithAuth("/api/repositories/latest-version"),
+          fetchWithAuth("/api/repositories", undefined, 5000, true),
+          fetchWithAuth("/api/repositories/latest-version", undefined, 5000, true),
         ]);
 
         if (!reposResponse.ok) {
+          // If automatic retry failed or it's another error, then throw
           throw new Error("Failed to fetch repositories");
         }
 
+        // Reset retry count on success
+        setRetryCount(0);
         const reposData = await reposResponse.json();
         setRepositories(Array.isArray(reposData) ? reposData : []);
 
@@ -59,6 +67,27 @@ export default function ProjectList({ view }: ProjectListProps) {
           setLatestVersion(version);
         }
       } catch (err) {
+        // If we still have retries left, check retry conditions
+        if (retryCount < maxRetries) {
+          // Skip specific errors we know we can't recover from
+          if (err instanceof Error && err.message === "Failed to fetch repositories") {
+            console.log("Non-recoverable error, not retrying:", err.message);
+          } else {
+            // Check if enough time has passed since last retry to prevent rapid retries
+            const now = Date.now();
+            if (now - lastRetryTime > retryDelay) {
+              console.log(`Retry attempt ${retryCount + 1}/${maxRetries}`);
+              setLastRetryTime(now);
+              setTimeout(() => {
+                setRetryCount(prev => prev + 1);
+              }, 2000);
+              return; // Don't set error state yet
+            } else {
+              console.log("Skipping retry - too soon since last attempt");
+            }
+          }
+        }
+        
         setError(err instanceof Error ? err.message : "Something went wrong");
         toast.error("Failed to load your projects");
       } finally {
@@ -67,40 +96,69 @@ export default function ProjectList({ view }: ProjectListProps) {
     };
 
     fetchRepositories();
-  }, [router]);
+    
+    // Listen for session refresh events to trigger a refetch with throttling
+    const handleSessionRefreshed = (event: MessageEvent) => {
+      if (event.data?.type === "SESSION_REFRESHED") {
+        // Check if we've retried recently to prevent rapid consecutive retries
+        const now = Date.now();
+        if (now - lastRetryTime > retryDelay) {
+          console.log("Session refreshed, retrying fetch...");
+          setLastRetryTime(now);
+          setRetryCount(prev => prev + 1);
+        } else {
+          console.log("Session refreshed, but skipping retry - too soon since last attempt");
+        }
+      }
+    };
 
-  const filteredRepositories = repositories.filter(
-    (repo) =>
-      repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (repo.description?.toLowerCase() || "").includes(
-        searchQuery.toLowerCase(),
-      ),
+    window.addEventListener("message", handleSessionRefreshed);
+    return () => window.removeEventListener("message", handleSessionRefreshed);
+  }, [retryCount, lastRetryTime]); // Add dependencies to trigger refetch
+
+  // Memoize filtered repositories to avoid unnecessary recalculations
+  const filteredRepositories = useMemo(() => (
+    repositories.filter(
+      (repo) =>
+        repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (repo.description?.toLowerCase() || "").includes(
+          searchQuery.toLowerCase(),
+        ),
+    )
+  ), [repositories, searchQuery]);
+
+  // Extract loading and error states to memoized components to prevent rerenders
+  const LoadingState = () => (
+    <div className="flex items-center justify-center h-64">
+      <div className="w-8 h-8 border-t-2 border-indigo-500 border-solid rounded-full animate-spin"></div>
+    </div>
+  );
+
+  const ErrorState = ({ message }: { message: string }) => (
+    <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
+      <FiAlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+      <h3 className="text-lg font-medium text-red-800 dark:text-red-200 mb-2">
+        Failed to load projects
+      </h3>
+      <p className="text-red-600 dark:text-red-300">{message}</p>
+      <button
+        onClick={() => {
+          setLastRetryTime(Date.now());
+          setRetryCount(prev => prev + 1);
+        }}
+        className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+      >
+        Try Again
+      </button>
+    </div>
   );
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-t-2 border-indigo-500 border-solid rounded-full animate-spin"></div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (error) {
-    return (
-      <div className="text-center p-8 bg-red-50 dark:bg-red-900/20 rounded-lg">
-        <FiAlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-red-800 dark:text-red-200 mb-2">
-          Failed to load projects
-        </h3>
-        <p className="text-red-600 dark:text-red-300">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-        >
-          Try Again
-        </button>
-      </div>
-    );
+    return <ErrorState message={error} />;
   }
 
   if (repositories.length === 0) {
@@ -171,7 +229,7 @@ export default function ProjectList({ view }: ProjectListProps) {
                 key={repo._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: Math.min(index * 0.05, 0.5) }} // Cap the delay for better performance with many items
                 className="group relative bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-md transition-all duration-200 cursor-pointer"
                 onClick={() => router.push(`/projects/${repo._id}`)}
               >
@@ -228,7 +286,7 @@ export default function ProjectList({ view }: ProjectListProps) {
                 key={repo._id}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
+                transition={{ delay: Math.min(index * 0.05, 0.5) }} // Cap the delay for better performance with many items
                 className="flex flex-col sm:flex-row sm:items-center justify-between py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 -mx-6 px-6 cursor-pointer"
                 onClick={() => router.push(`/projects/${repo._id}`)}
               >

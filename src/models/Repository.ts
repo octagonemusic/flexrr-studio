@@ -8,6 +8,11 @@ const RepositorySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    // User email as a more secure secondary identifier
+    userEmail: {
+      type: String,
+      index: true,
+    },
     githubUrl: String,
     envVars: {
       type: Map,

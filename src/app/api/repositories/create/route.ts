@@ -236,6 +236,7 @@ export async function POST(req: Request) {
       name,
       description: `Flexrr project created from template`,
       userId: session.user.id,
+      userEmail: session.user.email, // Store email as a more secure secondary identifier
       githubUrl: newRepo.data.html_url,
       envVars,
       version,

@@ -10,74 +10,87 @@ if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable");
 }
 
-let cached = global.mongoose;
+// Initialize connection cache
+const mongooseCache = global.mongoose || { conn: null, promise: null };
+if (!global.mongoose) global.mongoose = mongooseCache;
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
+// More aggressive timeouts to fail faster
+const options = {
+  serverSelectionTimeoutMS: 3000, // 3 seconds
+  connectTimeoutMS: 5000,         // 5 seconds
+  socketTimeoutMS: 10000,         // 10 seconds
+  maxPoolSize: 10,
+  bufferCommands: false,          // Disable buffering to fail fast
+  autoIndex: false,               // Don't build indexes on startup
+};
 
-const mongooseCache = cached as { conn: any; promise: any };
+// Track connection status for faster response
+let isConnected = false;
 
-export async function connectDB(retries = 3) {
-  if (mongooseCache.conn) {
+export async function connectDB(retries = 1) {
+  // If we're already connected, return immediately
+  if (isConnected && mongooseCache.conn) {
     return mongooseCache.conn;
   }
 
-  // If there's an existing connection attempt, wait for it
+  // Clear any stale connections
+  if (mongoose.connection.readyState === 1) {
+    isConnected = true;
+    mongooseCache.conn = mongoose.connection;
+    return mongooseCache.conn;
+  } else if (mongoose.connection.readyState !== 0) {
+    // If in a connecting/disconnecting state, reset
+    await mongoose.connection.close();
+    mongooseCache.promise = null;
+    mongooseCache.conn = null;
+  }
+
+  // Wait for an in-progress connection with timeout
   if (mongooseCache.promise) {
     try {
-      mongooseCache.conn = await mongooseCache.promise;
+      // Add a timeout to the promise wait
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Connection wait timeout")), 3000);
+      });
+      mongooseCache.conn = await Promise.race([
+        mongooseCache.promise,
+        timeoutPromise
+      ]);
+      isConnected = true;
       return mongooseCache.conn;
     } catch (error) {
-      // If the existing promise failed, clear it so we can retry
+      // Reset on failure
       mongooseCache.promise = null;
-      console.error("MongoDB connection failed:", error);
-
-      // If no retries left, throw the error
+      mongooseCache.conn = null;
+      
       if (retries <= 0) {
-        throw new Error(
-          `MongoDB connection failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-        );
+        throw new Error(`MongoDB connection timed out`);
       }
-
-      // Otherwise retry with one fewer retry
-      return connectDB(retries - 1);
     }
   }
 
-  // Set connection options with timeouts
-  const options = {
-    serverSelectionTimeoutMS: 5000, // Timeout for server selection
-    connectTimeoutMS: 10000, // Timeout for initial connection
-    socketTimeoutMS: 45000, // Timeout for operations on the socket
-    autoIndex: true, // Build indexes
-    maxPoolSize: 10, // Maintain up to 10 socket connections
-  };
-
   try {
-    // Create new connection promise
-    mongooseCache.promise = mongoose.connect(MONGODB_URI, options);
-    mongooseCache.conn = await mongooseCache.promise;
-
-    console.log("MongoDB connected successfully");
+    // Create new connection with explicit timeout
+    const connectPromise = mongoose.connect(MONGODB_URI, options);
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Connection timeout")), 5000);
+    });
+    
+    mongooseCache.promise = connectPromise;
+    mongooseCache.conn = await Promise.race([connectPromise, timeoutPromise]);
+    isConnected = true;
     return mongooseCache.conn;
   } catch (error) {
-    // Clear promise on error
+    // Clean up after failure
     mongooseCache.promise = null;
-    console.error("MongoDB connection error:", error);
-
-    // If no retries left, throw the error
+    mongooseCache.conn = null;
+    
     if (retries <= 0) {
-      throw new Error(
-        `Failed to connect to MongoDB after retries: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+      throw new Error(`Failed to connect to MongoDB - session operations will fail`);
     }
-
-    // Otherwise retry with exponential backoff
-    const backoffMs = Math.pow(2, 3 - retries) * 1000;
-    console.log(`Retrying MongoDB connection in ${backoffMs}ms...`);
-    await new Promise((resolve) => setTimeout(resolve, backoffMs));
-
+    
+    // Minimal retry with short backoff
+    await new Promise(resolve => setTimeout(resolve, 500));
     return connectDB(retries - 1);
   }
 }

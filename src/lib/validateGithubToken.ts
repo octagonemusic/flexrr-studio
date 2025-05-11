@@ -18,33 +18,31 @@ export async function validateGithubToken(accessToken: string): Promise<{
   try {
     const octokit = new Octokit({ auth: accessToken });
     
-    // Make a simple API call to check if token is valid
-    // The /user endpoint is lightweight and gives us the username
-    const { data } = await octokit.users.getAuthenticated();
+    // Add timeout to prevent long-running validation
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Validation timed out")), 2000)
+    );
     
-    return {
-      valid: true,
-      username: data.login,
-    };
+    // Use a HEAD request to /user which is more efficient
+    const validationPromise = octokit.request('HEAD /user');
+    
+    // Race validation against timeout
+    await Promise.race([validationPromise, timeoutPromise]);
+    
+    return { valid: true };
   } catch (error: any) {
-    // Handle various GitHub API errors
-    if (error.status === 401) {
-      return {
-        valid: false,
-        error: "Token expired or invalid",
-      };
+    // Check for timeout errors
+    if (error.message === "Validation timed out") {
+      // Assume token is valid if it times out to prevent blocking
+      console.warn("Token validation timed out, assuming valid");
+      return { valid: true, error: "Validation timed out, assuming valid" };
     }
     
-    if (error.status === 403 && error.message?.includes("rate limit")) {
-      return {
-        valid: false,
-        error: "Rate limit exceeded",
-      };
-    }
-    
+    // Simplified error handling
     return {
       valid: false,
-      error: error.message || "Unknown error validating token",
+      error: error.status === 401 ? "Token expired or invalid" : 
+             (error.message || "Unknown error validating token")
     };
   }
 }

@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { User } from "@/models/User";
 import { validateGithubToken } from "./validateGithubToken";
+import { connectDB } from "./mongoose";
 
 export async function getGithubAccessToken() {
   try {
@@ -11,46 +12,57 @@ export async function getGithubAccessToken() {
       throw new Error("No authenticated user found");
     }
 
-    // First check if the token is already in the session
+    // Check for valid token in session first (most efficient path)
     if (session.user.accessToken) {
-      // Validate the token before returning it
+      // Quick validation with timeout
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error("Token validation timed out")), 2000)
+      );
+      
       try {
-        const validation = await validateGithubToken(session.user.accessToken);
-        if (validation.valid) {
+        const validationPromise = validateGithubToken(session.user.accessToken);
+        const result = await Promise.race([validationPromise, timeoutPromise]);
+        
+        if (result && typeof result === 'object' && 'valid' in result && result.valid) {
           return session.user.accessToken;
-        } else {
-          console.warn("Session token validation failed:", validation.error);
-          // Continue to database check if token is invalid
         }
-      } catch (validationError) {
-        console.warn("Error validating session token:", validationError);
-        // Continue to database check if validation fails
+      } catch (err) {
+        // If validation times out, return the token anyway
+        console.warn("Token validation timed out, using session token");
+        return session.user.accessToken;
       }
     }
 
-    // If not in session or session token is invalid, try to get from database
-    const user = await User.findOne({ email: session.user.email }).select(
-      "+accessToken",
+    // Set up DB timeout
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Database lookup timed out")), 2000)
     );
 
-    if (!user?.accessToken) {
-      throw new Error("No GitHub access token found");
-    }
-
-    // Validate the database token before returning it
     try {
-      const validation = await validateGithubToken(user.accessToken);
-      if (!validation.valid) {
-        throw new Error(`Invalid GitHub token: ${validation.error}`);
+      // Attempt MongoDB connection with timeout
+      const connectPromise = connectDB();
+      await Promise.race([connectPromise, timeoutPromise]);
+      
+      // Query user with timeout
+      const findPromise = User.findOne({ email: session.user.email }).select("+accessToken");
+      const user = await Promise.race([findPromise, timeoutPromise]);
+
+      if (user?.accessToken) {
+        return user.accessToken;
       }
-    } catch (validationError) {
-      console.error("Database token validation failed:", validationError);
-      throw new Error("GitHub token validation failed");
+    } catch (dbError) {
+      console.warn("Database error or timeout:", dbError);
+      
+      // If DB fails and we have a session token, use it regardless of validation
+      if (session.user.accessToken) {
+        console.warn("Using session token as fallback after DB error");
+        return session.user.accessToken;
+      }
     }
 
-    return user.accessToken;
+    throw new Error("No GitHub access token found");
   } catch (error) {
-    console.error("Error getting GitHub token:", error);
+    console.error("Token retrieval error:", error);
     throw new Error("Failed to retrieve GitHub access token");
   }
 }

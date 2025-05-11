@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -83,59 +83,55 @@ export default function ProjectDetails() {
     resolver: zodResolver(updateNameSchema),
   });
 
-  const fetchProject = async () => {
+  const fetchData = useCallback(async () => {
+    if (!params.id) return;
+    
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetchWithAuth(`/api/repositories/${params.id}`);
-      if (!response.ok) {
+      
+      // Fetch both project data and latest version in parallel
+      const [projectResponse, versionResponse] = await Promise.all([
+        fetchWithAuth(`/api/repositories/${params.id}`),
+        fetchWithAuth("/api/repositories/latest-version")
+      ]);
+      
+      if (!projectResponse.ok) {
         throw new Error("Failed to fetch project details");
       }
-      const data = await response.json();
+      
+      const data = await projectResponse.json();
       setProject(data);
+      
+      if (versionResponse.ok) {
+        const { version } = await versionResponse.json();
+        setLatestVersion(version);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       toast.error("Failed to load project details");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const fetchLatestVersion = async () => {
-    try {
-      const response = await fetchWithAuth("/api/repositories/latest-version");
-      if (!response.ok) {
-        throw new Error("Failed to fetch latest version");
-      }
-      const { version } = await response.json();
-      setLatestVersion(version);
-    } catch (err) {
-      console.error("Error fetching latest version:", err);
-      toast.error("Couldn't check for updates");
-    }
-  };
+  }, [params.id]);
 
   useEffect(() => {
-    if (params.id) {
-      fetchProject();
-      fetchLatestVersion();
-    }
-  }, [params.id]);
+    fetchData();
+  }, [fetchData]);
 
   const handleCopy = async () => {
     if (!project?.envVars) return;
 
     try {
-      await navigator.clipboard.writeText(
-        Object.entries(project.envVars)
-          .map(([key, value]) => `${key}=${value}`)
-          .join("\n"),
-      );
+      const envText = Object.entries(project.envVars)
+        .map(([key, value]) => `${key}=${value}`)
+        .join("\n");
+        
+      await navigator.clipboard.writeText(envText);
       setCopied(true);
       toast.success("Environment variables copied");
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error("Failed to copy:", error);
       toast.error("Failed to copy");
     }
   };
@@ -155,7 +151,7 @@ export default function ProjectDetails() {
         throw new Error("Failed to update repository");
       }
 
-      await fetchProject();
+      await fetchData();
       toast.success("Project updated successfully", { id: "update-toast" });
     } catch (err) {
       setError(
@@ -171,7 +167,7 @@ export default function ProjectDetails() {
     if (!project) return;
 
     try {
-      setIsRenamingLoading(true); // Use the new loading state
+      setIsRenamingLoading(true);
       toast.loading("Renaming project...", { id: "rename-toast" });
 
       const response = await fetchWithAuth(`/api/repositories/${project._id}/rename`, {
@@ -184,8 +180,8 @@ export default function ProjectDetails() {
         throw new Error("Failed to rename repository");
       }
 
-      await fetchProject();
-      setIsRenaming(false); // This closes the form
+      await fetchData();
+      setIsRenaming(false);
       reset();
       toast.success("Project renamed successfully", { id: "rename-toast" });
     } catch (err) {
@@ -194,7 +190,7 @@ export default function ProjectDetails() {
       );
       toast.error("Rename failed", { id: "rename-toast" });
     } finally {
-      setIsRenamingLoading(false); // Reset loading state
+      setIsRenamingLoading(false);
     }
   };
 
@@ -218,17 +214,15 @@ export default function ProjectDetails() {
       }
 
       toast.success("Project deleted successfully");
-
+      
       // Show reminder toast about Vercel deployment
       toast("Remember to delete your Vercel deployment if applicable.", {
         icon: "⚠️",
         duration: 6000,
       });
 
-      // Redirect to projects page after deletion
       router.push("/projects");
     } catch (err) {
-      console.error("Error deleting project:", err);
       setDeleteError(
         err instanceof Error ? err.message : "Failed to delete project",
       );
@@ -238,34 +232,33 @@ export default function ProjectDetails() {
     }
   };
 
-  const checkRepositoryStatus = async () => {
+  // Check repository status when project data is loaded
+  useEffect(() => {
     if (!project?._id) return;
 
-    try {
-      const response = await fetchWithAuth(`/api/repositories/${project._id}/check`);
-      if (response.ok) {
-        const data = await response.json();
-        if (!data.exists) {
-          toast("This project appears to have been deleted on GitHub", {
-            icon: "⚠️",
-            duration: 5000,
-            style: {
-              backgroundColor: "#FEF3C7", // Amber 100
-              color: "#92400E", // Amber 800
-              border: "1px solid #FDE68A", // Amber 200
-            },
-          });
+    const checkRepositoryStatus = async () => {
+      try {
+        const response = await fetchWithAuth(`/api/repositories/${project._id}/check`);
+        if (response.ok) {
+          const data = await response.json();
+          if (!data.exists) {
+            toast("This project appears to have been deleted on GitHub", {
+              icon: "⚠️",
+              duration: 5000,
+              style: {
+                backgroundColor: "#FEF3C7",
+                color: "#92400E", 
+                border: "1px solid #FDE68A",
+              },
+            });
+          }
         }
+      } catch (error) {
+        // Silently fail - status check is not critical
       }
-    } catch (error) {
-      console.error("Error checking repository status:", error);
-    }
-  };
-  // Call the check in useEffect
-  useEffect(() => {
-    if (project?._id) {
-      checkRepositoryStatus();
-    }
+    };
+
+    checkRepositoryStatus();
   }, [project?._id]);
 
   if (isLoading) {

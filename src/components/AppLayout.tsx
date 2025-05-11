@@ -4,8 +4,8 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
-import { useAuth } from "@/lib/authHandler";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useSession, signOut } from "next-auth/react";
 import {
   FiHome,
   FiGitBranch,
@@ -27,16 +27,15 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const { session, signOut } = useAuth();
+  const { data: session } = useSession();
   const pathname = usePathname();
   const router = useRouter();
-  const [showSettings, setShowSettings] = useState(false); // Add this state
-  const [darkMode, setDarkMode] = useState(false); // Add dark mode state
-  const settingsRef = useRef<HTMLDivElement>(null); // Add ref for click outside
+  const [showSettings, setShowSettings] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
 
-  // Handle dark mode
+  // Handle dark mode - only runs once
   useEffect(() => {
-    // Check if user prefers dark mode
     const isDarkMode =
       localStorage.getItem("darkMode") === "true" ||
       window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -67,7 +66,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     };
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       toast.loading("Signing out...", { id: "logout" });
       await signOut({ redirect: false });
@@ -75,9 +74,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
       router.push("/");
     } catch (error) {
       toast.error("Failed to sign out", { id: "logout" });
-      console.error("Logout error:", error);
     }
-  };
+  }, [router]);
 
   if (!session) {
     return <>{children}</>;

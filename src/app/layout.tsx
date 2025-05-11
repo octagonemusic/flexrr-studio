@@ -6,7 +6,6 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { Metadata } from "next";
 
-// Define metadata directly in layout.tsx
 export const metadata: Metadata = {
   title: "Flexrr Studio",
   description: "Create, manage, and deploy web applications with Flexrr Studio",
@@ -30,8 +29,6 @@ export default async function RootLayout({
         <ErrorBoundary>
           <SessionProvider session={session}>
             <Toaster position="top-right" />
-            {/* Only show login button on the landing page */}
-            {!session && <div className="absolute top-4 right-4 z-50"></div>}
             {children}
           </SessionProvider>
         </ErrorBoundary>

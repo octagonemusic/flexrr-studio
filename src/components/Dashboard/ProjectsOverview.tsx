@@ -40,46 +40,78 @@ export default function ProjectsOverview() {
     Record<string, LatestVersionInfo>
   >({});
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const [lastRetryTime, setLastRetryTime] = useState(0);
+  const maxRetries = 2;
+  const retryDelay = 3000; // Minimum delay between retries in ms
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Fetch repositories
-        const reposResponse = await fetchWithAuth("/api/repositories");
-        if (!reposResponse.ok) throw new Error("Failed to fetch projects");
+        
+        // Fetch both resources in parallel to improve performance with auto-retry
+        const [reposResponse, versionResponse] = await Promise.all([
+          fetchWithAuth("/api/repositories", undefined, 5000, true),
+          fetchWithAuth("/api/repositories/latest-version", undefined, 5000, true)
+        ]);
+        
+        if (!reposResponse.ok) {
+          throw new Error("Failed to fetch projects");
+        }
+        
+        // Reset retry count on success
+        setRetryCount(0);
         const reposData = await reposResponse.json();
 
         // Sort by creation date
         const sortedRepos = Array.isArray(reposData)
           ? [...reposData].sort(
-              (a, b) =>
-                new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime(),
+              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
             )
           : [];
 
         setRepositories(sortedRepos);
         setRecentRepositories(sortedRepos.slice(0, 3));
 
-        // Fetch latest version
-        const versionResponse = await fetchWithAuth("/api/repositories/latest-version");
+        // Process version data if available
         if (versionResponse.ok) {
           const { version } = await versionResponse.json();
           setLatestVersion(version);
 
-          // Create version info for each repository
-          const versionInfo: Record<string, LatestVersionInfo> = {};
-          sortedRepos.forEach((repo) => {
-            versionInfo[repo._id] = {
+          // Create version info object in one pass
+          const versionInfo = sortedRepos.reduce((acc, repo) => {
+            acc[repo._id] = {
               version: repo.version || "1.0.0",
               needsUpdate: repo.version !== version,
             };
-          });
+            return acc;
+          }, {} as Record<string, LatestVersionInfo>);
 
           setLatestVersionInfo(versionInfo);
         }
       } catch (err) {
+        // If we still have retries left, check retry conditions
+        if (retryCount < maxRetries) {
+          // Skip specific errors we know we can't recover from
+          if (err instanceof Error && err.message === "Failed to fetch projects") {
+            console.log("Non-recoverable error, not retrying:", err.message);
+          } else {
+            // Check if enough time has passed since last retry to prevent rapid retries
+            const now = Date.now();
+            if (now - lastRetryTime > retryDelay) {
+              console.log(`Retry attempt ${retryCount + 1}/${maxRetries}`);
+              setLastRetryTime(now);
+              setTimeout(() => {
+                setRetryCount(prev => prev + 1);
+              }, 2000);
+              return; // Don't set error state yet
+            } else {
+              console.log("Skipping retry - too soon since last attempt");
+            }
+          }
+        }
+        
         setError(err instanceof Error ? err.message : "Something went wrong");
       } finally {
         setIsLoading(false);
@@ -87,7 +119,25 @@ export default function ProjectsOverview() {
     };
 
     fetchData();
-  }, [router]);
+    
+    // Listen for session refresh events to trigger a refetch with throttling
+    const handleSessionRefreshed = (event: MessageEvent) => {
+      if (event.data?.type === "SESSION_REFRESHED") {
+        // Check if we've retried recently to prevent rapid consecutive retries
+        const now = Date.now();
+        if (now - lastRetryTime > retryDelay) {
+          console.log("Session refreshed, retrying fetch...");
+          setLastRetryTime(now);
+          setRetryCount(prev => prev + 1);
+        } else {
+          console.log("Session refreshed, but skipping retry - too soon since last attempt");
+        }
+      }
+    };
+
+    window.addEventListener("message", handleSessionRefreshed);
+    return () => window.removeEventListener("message", handleSessionRefreshed);
+  }, [retryCount, lastRetryTime]); // Add dependencies to trigger refetch
 
   if (isLoading) {
     return (
@@ -106,7 +156,10 @@ export default function ProjectsOverview() {
         </h3>
         <p className="text-red-600 dark:text-red-300">{error}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => {
+            setLastRetryTime(Date.now());
+            setRetryCount(prev => prev + 1);
+          }}
           className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
         >
           Try Again
@@ -191,11 +244,7 @@ export default function ProjectsOverview() {
             <div>
               <h3 className="text-xl font-bold">Projects to Update</h3>
               <p className="text-3xl font-bold mt-2">
-                {
-                  Object.values(latestVersionInfo).filter(
-                    (info) => info.needsUpdate,
-                  ).length
-                }
+                {Object.values(latestVersionInfo).reduce((count, info) => count + (info.needsUpdate ? 1 : 0), 0)}
               </p>
             </div>
           </div>
@@ -218,43 +267,44 @@ export default function ProjectsOverview() {
         </div>
 
         <div className="space-y-4">
-          {recentRepositories.map((repo) => (
-            <motion.div
-              key={repo._id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-              onClick={() => router.push(`/projects/${repo._id}`)}
-            >
-              <div className="flex items-center space-x-4">
-                <div className="bg-indigo-100 dark:bg-indigo-900/30 w-10 h-10 rounded-md flex items-center justify-center">
-                  <span className="text-indigo-600 dark:text-indigo-400 font-medium">
-                    {repo.name.charAt(0).toUpperCase()}
-                  </span>
+          {recentRepositories.map((repo, index) => (
+              <motion.div
+                key={repo._id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.3 }}
+                className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                onClick={() => router.push(`/projects/${repo._id}`)}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="bg-indigo-100 dark:bg-indigo-900/30 w-10 h-10 rounded-md flex items-center justify-center">
+                    <span className="text-indigo-600 dark:text-indigo-400 font-medium">
+                      {repo.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900 dark:text-white">
+                      {repo.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Created {new Date(repo.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">
-                    {repo.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Created {new Date(repo.createdAt).toLocaleDateString()}
-                  </p>
+                <div className="flex items-center space-x-2">
+                  {latestVersionInfo[repo._id]?.needsUpdate ? (
+                    <span className="px-2 py-1 text-xs bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded-full">
+                      Update Available
+                    </span>
+                  ) : (
+                    <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-full">
+                      Up to Date
+                    </span>
+                  )}
+                  <FiArrowRight className="w-4 h-4 text-gray-400" />
                 </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                {latestVersionInfo[repo._id]?.needsUpdate ? (
-                  <span className="px-2 py-1 text-xs bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 rounded-full">
-                    Update Available
-                  </span>
-                ) : (
-                  <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-full">
-                    Up to Date
-                  </span>
-                )}
-                <FiArrowRight className="w-4 h-4 text-gray-400" />
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
         </div>
       </div>
 
@@ -292,16 +342,16 @@ export default function ProjectsOverview() {
             </button>
           )}
 
-          {Object.values(latestVersionInfo).some(
-            (info) => info.needsUpdate,
-          ) && (
+          {Object.keys(latestVersionInfo).length > 0 && 
+           Object.values(latestVersionInfo).some(info => info.needsUpdate) && (
             <button
               onClick={() => {
-                const projectToUpdate = repositories.find(
-                  (repo) => latestVersionInfo[repo._id]?.needsUpdate,
-                );
-                if (projectToUpdate) {
-                  router.push(`/projects/${projectToUpdate._id}`);
+                // Find first project needing update
+                for (const repo of repositories) {
+                  if (latestVersionInfo[repo._id]?.needsUpdate) {
+                    router.push(`/projects/${repo._id}`);
+                    break;
+                  }
                 }
               }}
               className="flex flex-col items-center justify-center p-4 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:hover:bg-amber-900/30 rounded-lg transition-colors text-amber-700 dark:text-amber-300"

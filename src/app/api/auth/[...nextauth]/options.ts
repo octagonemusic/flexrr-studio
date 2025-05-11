@@ -14,6 +14,11 @@ declare module "next-auth" {
       accessToken?: string;
     } & DefaultSession["user"];
   }
+  
+  interface JWT {
+    accessToken?: string;
+    sub?: string;
+  }
 }
 
 export const authOptions: AuthOptions = {
@@ -33,7 +38,18 @@ export const authOptions: AuthOptions = {
       try {
         if (!user.email) return false;
 
-        await connectDB();
+        // Attempt to connect with a short timeout
+        const connectPromise = connectDB();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Database connection timed out")), 5000)
+        );
+        
+        try {
+          await Promise.race([connectPromise, timeoutPromise]);
+        } catch (error) {
+          console.error("Fast database connection failed:", error);
+          // Allow sign-in even if DB connection fails
+        }
 
         console.log("Sign in account details:", {
           hasAccessToken: !!account?.access_token,
@@ -52,21 +68,48 @@ export const authOptions: AuthOptions = {
             lastLogin: new Date(),
           };
 
-          await User.findOneAndUpdate({ email: user.email }, userData, {
+          // Set a timeout for DB operations
+          const updatePromise = User.findOneAndUpdate({ email: user.email }, userData, {
             upsert: true,
             new: true,
+            maxTimeMS: 4000, // Database-level timeout
           });
+          
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("Database update timed out")), 5000)
+          );
+          
+          try {
+            await Promise.race([updatePromise, timeoutPromise]);
+          } catch (error) {
+            console.error("User update failed:", error);
+            // Continue sign-in process despite DB error
+          }
         } else {
           // Just update basic data if no new tokens
-          await User.findOneAndUpdate(
-            { email: user.email },
-            {
-              name: user.name,
-              image: user.image,
-              lastLogin: new Date(),
-            },
-            { upsert: true },
-          );
+          try {
+            const updatePromise = User.findOneAndUpdate(
+              { email: user.email },
+              {
+                name: user.name,
+                image: user.image,
+                lastLogin: new Date(),
+              },
+              { 
+                upsert: true,
+                maxTimeMS: 4000, // Database-level timeout
+              }
+            );
+          
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error("Database update timed out")), 5000)
+            );
+            
+            await Promise.race([updatePromise, timeoutPromise]);
+          } catch (error) {
+            console.error("Basic user update failed:", error);
+            // Continue despite DB error
+          }
         }
 
         return true;
@@ -79,28 +122,76 @@ export const authOptions: AuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         try {
-          const dbUser = await User.findOne({
+          // Set a timeout to prevent long-running operations
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("Session lookup timed out")), 5000)
+          );
+          
+          const userLookupPromise = User.findOne({
             email: session.user.email,
           }).select("+accessToken");
+          
+          // Use token data as fallback if DB lookup times out
+          const dbUser = await Promise.race([userLookupPromise, timeoutPromise])
+            .catch(error => {
+              console.error("Session lookup error:", error);
+              
+              // Try to determine if token.sub is a MongoDB ObjectId or a GitHub ID
+              let userId = token.sub;
+              // If it's a GitHub numeric ID, try to find user by email without timeout
+              if (token.sub && !token.sub.match(/^[0-9a-fA-F]{24}$/)) {
+                console.log("Using email lookup fallback instead of numeric GitHub ID");
+              }
+              
+              // Set fallback ID from token
+              return { _id: userId, accessToken: token.accessToken };
+            });
 
-          if (!dbUser) {
-            throw new Error("User not found in database");
+          if (dbUser) {
+            // Ensure we're using a MongoDB ObjectId if available
+            session.user.id = dbUser._id.toString();
+            session.user.accessToken = dbUser.accessToken as string | undefined;
+            // Make sure email is preserved in the session
+            if (!session.user.email && dbUser.email) {
+              session.user.email = dbUser.email;
+            }
+          } else if (token.sub) {
+            // Use token as fallback if no DB user found
+            session.user.id = token.sub;
+            session.user.accessToken = token.accessToken as string | undefined;
+            // Ensure email is available for secure repository queries
+            if (!session.user.email && token.email) {
+              session.user.email = token.email as string;
+            }
+            console.warn("Using token fallback for user ID, this might cause MongoDB ObjectId casting issues");
           }
-
-          session.user.id = dbUser._id.toString();
-          session.user.accessToken = dbUser.accessToken;
         } catch (error) {
           console.error("Error getting user session:", error);
+          // Ensure we have minimal id to prevent cascading errors
+          if (token.sub && !session.user.id) {
+            session.user.id = token.sub;
+          }
         }
       }
       return session;
     },
 
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
       // Include the provider account info in the token
       if (account) {
-        token.accessToken = account.access_token;
+        token.accessToken = account.access_token as string;
       }
+      
+      // If we have a user object with an _id (MongoDB ObjectId), store it in the token
+      if (user && (user as any)._id) {
+        token.mongoId = (user as any)._id.toString();
+      }
+      
+      // Preserve email in the token for repository authorization
+      if (user && user.email) {
+        token.email = user.email;
+      }
+
       return token;
     },
   },

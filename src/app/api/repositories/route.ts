@@ -50,9 +50,21 @@ export async function GET(req: Request) {
 
     await connectDB();
 
-    const repositories = await Repository.find({
-      userId: session.user.id,
-    }).sort({ createdAt: -1 });
+    // Secure query that only returns repositories owned by the current user
+    // Check if the ID is a valid MongoDB ObjectId
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(session.user.id);
+    
+    let query;
+    if (isValidObjectId) {
+      // If it's a valid ObjectId, use it directly
+      query = { userId: session.user.id };
+    } else {
+      // If using email as identifier (safer than GitHub ID)
+      query = { userEmail: session.user.email };
+      console.warn(`Using email for repository lookup instead of invalid ObjectId: ${session.user.id}`);
+    }
+    
+    const repositories = await Repository.find(query).sort({ createdAt: -1 });
 
     return NextResponse.json(repositories);
   } catch (error) {
