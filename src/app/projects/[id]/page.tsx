@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { signIn } from "next-auth/react";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
@@ -99,6 +100,7 @@ export default function ProjectDetails() {
       
       if (!projectResponse.ok) {
         if (projectResponse.status === 401) {
+          // No auto-retry - require manual re-authentication
           throw new Error("Authentication error: Your session has expired");
         }
         throw new Error("Failed to fetch project details");
@@ -161,6 +163,7 @@ export default function ProjectDetails() {
 
       if (!response.ok) {
         if (response.status === 401) {
+          // No auto-retry - require manual re-authentication
           throw new Error("Authentication error: Your session has expired");
         }
         throw new Error("Failed to update repository");
@@ -199,6 +202,7 @@ export default function ProjectDetails() {
 
       if (!response.ok) {
         if (response.status === 401) {
+          // No auto-retry - require manual re-authentication
           throw new Error("Authentication error: Your session has expired");
         }
         throw new Error("Failed to rename repository");
@@ -240,6 +244,7 @@ export default function ProjectDetails() {
 
       if (!response.ok) {
         if (response.status === 401) {
+          // No auto-retry - require manual re-authentication
           throw new Error("Authentication error: Your session has expired");
         }
         const errorData = await response.json();
@@ -316,7 +321,7 @@ export default function ProjectDetails() {
         <AppLayout>
           <AuthError 
             message="Your session has expired or is invalid. Please sign in again to view this project."
-            onRetry={() => fetchData()}
+            onRetry={() => signIn("github")}
           />
         </AppLayout>
       );

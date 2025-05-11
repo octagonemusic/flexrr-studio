@@ -1,9 +1,9 @@
 /**
  * Simple function to log authentication errors
- * No event broadcasting or complex handling - just logging
+ * No automatic handling - just logging for now
  */
 export function handleApiAuthError() {
-  console.log("Authentication error detected");
+  console.log("Authentication error detected - manual re-sign in required");
 }
 
 /**
@@ -11,7 +11,6 @@ export function handleApiAuthError() {
  * @param url The URL to fetch
  * @param options Fetch options
  * @param timeoutMs Timeout in milliseconds (default: 5000)
- * @param retryOnAuth Ignored - no auto-retry functionality
  * @param progressCallback Optional callback for progress updates
  * @returns Promise resolving to fetch response
  */
@@ -27,7 +26,6 @@ export async function fetchWithAuth(
   url: string, 
   options?: RequestInit, 
   timeoutMs: number = 5000, 
-  retryOnAuth: boolean = false,
   progressCallback?: (status: string) => void
 ): Promise<Response> {
   // Get the endpoint without query params
@@ -60,9 +58,9 @@ export async function fetchWithAuth(
   try {
     const response = await fetch(url, fetchOptions);
     
-    // Handle authentication errors but don't retry automatically
+    // Handle authentication errors - manual re-sign in required
     if (response.status === 401) {
-      console.warn(`Auth error (401) detected for ${url}`);
+      console.warn(`Auth error (401) detected for ${url} - user needs to re-authenticate`);
       handleApiAuthError();
     }
     

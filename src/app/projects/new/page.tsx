@@ -93,7 +93,6 @@ export default function NewProject() {
           body: JSON.stringify(data),
         },
         60000,
-        true, // 60 second timeout with auto-retry on auth errors
         (status) => {
           setProgressStatus(status);
         },
@@ -160,7 +159,7 @@ export default function NewProject() {
       setProgressStatus("Project created successfully!");
       setCreationProgress(100);
       setEnvVars(responseData.envVars);
-      setTimeout(() => router.push("/projects"), 5000);
+      // No auto-redirect - will show success state with button
     } catch (err) {
       if (!error) {
         // Only set error if not already set by switch cases
@@ -496,13 +495,10 @@ export default function NewProject() {
         )}
 
         {envVars && (
-          <div className="mt-8 animate-fade-in">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Environment Variables
-              <span className="text-sm font-normal text-gray-500 ml-2">
-                (Redirecting in 5 seconds...)
-              </span>
-            </h2>
+        <div className="mt-8 animate-fade-in">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            Environment Variables
+          </h2>
             <div className="bg-gray-800 p-4 rounded-lg">
               <pre className="text-gray-100 whitespace-pre-wrap">
                 {Object.entries(envVars).map(
@@ -517,7 +513,7 @@ export default function NewProject() {
                 {copied ? "Copied!" : "Copy to Clipboard"}
               </button>
             </div>
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-3">
               <a
                 href="https://vercel.com/new"
                 target="_blank"
@@ -526,6 +522,14 @@ export default function NewProject() {
               >
                 Deploy on Vercel →
               </a>
+              <div>
+                <button
+                  onClick={() => router.push("/projects")}
+                  className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors mt-4"
+                >
+                  Go to Dashboard
+                </button>
+              </div>
             </div>
           </div>
         )}

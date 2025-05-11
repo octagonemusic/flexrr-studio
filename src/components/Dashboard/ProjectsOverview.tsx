@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   FiPlus,
@@ -11,6 +12,7 @@ import {
   FiAlertTriangle,
   FiRefreshCw,
   FiExternalLink,
+  FiGithub,
 } from "react-icons/fi";
 import { fetchWithAuth } from "@/lib/apiHelpers";
 import AuthError from "@/components/AuthError";
@@ -41,31 +43,26 @@ export default function ProjectsOverview() {
     Record<string, LatestVersionInfo>
   >({});
   const [latestVersion, setLatestVersion] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const [lastRetryTime, setLastRetryTime] = useState(0);
-  const maxRetries = 2;
-  const retryDelay = 3000; // Minimum delay between retries in ms
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         
-        // Fetch both resources in parallel to improve performance with auto-retry
+        // Fetch both resources in parallel
         const [reposResponse, versionResponse] = await Promise.all([
-          fetchWithAuth("/api/repositories", undefined, 5000, true),
-          fetchWithAuth("/api/repositories/latest-version", undefined, 5000, true)
+          fetchWithAuth("/api/repositories", undefined, 5000),
+          fetchWithAuth("/api/repositories/latest-version", undefined, 5000)
         ]);
         
         if (!reposResponse.ok) {
           if (reposResponse.status === 401) {
+            // No auto-retry - require manual re-authentication
             throw new Error("Authentication error: Your session has expired");
           }
           throw new Error("Failed to fetch projects");
         }
         
-        // Reset retry count on success
-        setRetryCount(0);
         const reposData = await reposResponse.json();
 
         // Sort by creation date
@@ -95,27 +92,6 @@ export default function ProjectsOverview() {
           setLatestVersionInfo(versionInfo);
         }
       } catch (err) {
-        // If we still have retries left, check retry conditions
-        if (retryCount < maxRetries) {
-          // Skip specific errors we know we can't recover from
-          if (err instanceof Error && err.message === "Failed to fetch projects") {
-            console.log("Non-recoverable error, not retrying:", err.message);
-          } else {
-            // Check if enough time has passed since last retry to prevent rapid retries
-            const now = Date.now();
-            if (now - lastRetryTime > retryDelay) {
-              console.log(`Retry attempt ${retryCount + 1}/${maxRetries}`);
-              setLastRetryTime(now);
-              setTimeout(() => {
-                setRetryCount(prev => prev + 1);
-              }, 2000);
-              return; // Don't set error state yet
-            } else {
-              console.log("Skipping retry - too soon since last attempt");
-            }
-          }
-        }
-        
         const errorMessage = err instanceof Error ? err.message : "Something went wrong";
         const isAuthError = errorMessage.includes("Authentication") || 
                             errorMessage.includes("auth") || 
@@ -131,25 +107,7 @@ export default function ProjectsOverview() {
     };
 
     fetchData();
-    
-    // Listen for session refresh events to trigger a refetch with throttling
-    const handleSessionRefreshed = (event: MessageEvent) => {
-      if (event.data?.type === "SESSION_REFRESHED") {
-        // Check if we've retried recently to prevent rapid consecutive retries
-        const now = Date.now();
-        if (now - lastRetryTime > retryDelay) {
-          console.log("Session refreshed, retrying fetch...");
-          setLastRetryTime(now);
-          setRetryCount(prev => prev + 1);
-        } else {
-          console.log("Session refreshed, but skipping retry - too soon since last attempt");
-        }
-      }
-    };
-
-    window.addEventListener("message", handleSessionRefreshed);
-    return () => window.removeEventListener("message", handleSessionRefreshed);
-  }, [retryCount, lastRetryTime]); // Add dependencies to trigger refetch
+  }, []); // No dependencies needed
 
   if (isLoading) {
     return (
@@ -164,10 +122,7 @@ export default function ProjectsOverview() {
       return (
         <AuthError 
           message="Your session has expired or is invalid. Please sign in again to view your projects."
-          onRetry={() => {
-            setLastRetryTime(Date.now());
-            setRetryCount(prev => prev + 1);
-          }}
+          onRetry={() => signIn("github")}
         />
       );
     }
@@ -180,13 +135,11 @@ export default function ProjectsOverview() {
         </h3>
         <p className="text-red-600 dark:text-red-300">{error.message}</p>
         <button
-          onClick={() => {
-            setLastRetryTime(Date.now());
-            setRetryCount(prev => prev + 1);
-          }}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          onClick={() => signIn("github")}
+          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
         >
-          Try Again
+          <FiGithub className="w-4 h-4" />
+          Sign In Again
         </button>
       </div>
     );

@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 
 /**
  * Simple hook for authentication functionality
- * No auto-retry or redirects - just basic auth features
+ * Basic auth features with no automatic redirects
  */
 export function useAuth() {
   const { data: session, status } = useSession();
