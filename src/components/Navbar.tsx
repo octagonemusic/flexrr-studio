@@ -80,8 +80,7 @@ export default function Navbar() {
                 Projects
               </Link>
               <Link
-                href="https://github.com/octagonemusic/flexrr"
-                target="_blank"
+                href="/documentation"
                 className="px-3 py-2 rounded-md text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
               >
                 Documentation
@@ -166,8 +165,7 @@ export default function Navbar() {
               Projects
             </Link>
             <Link
-              href="https://github.com/octagonemusic/flexrr"
-              target="_blank"
+              href="/documentation"
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
               onClick={() => setIsOpen(false)}
             >

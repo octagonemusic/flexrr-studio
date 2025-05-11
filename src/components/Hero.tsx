@@ -44,9 +44,7 @@ export default function Hero({ session }: HeroProps) {
 
             <div className="hidden md:flex items-center space-x-8">
               <a
-                href="https://github.com/octagonemusic/flexrr"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/documentation"
                 className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white text-sm font-medium"
               >
                 Documentation
@@ -424,7 +422,7 @@ export default function Hero({ session }: HeroProps) {
                 <h3 className="text-white font-medium mb-4">Resources</h3>
                 <ul className="space-y-2">
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="/documentation" className="hover:text-white transition-colors">
                       Documentation
                     </a>
                   </li>

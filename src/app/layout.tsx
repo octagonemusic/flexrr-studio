@@ -2,6 +2,8 @@ import { montserrat, geistMono, geistSans } from "./fonts";
 import { getServerSession } from "next-auth";
 import SessionProvider from "@/components/SessionProvider";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import PublicHeader from "@/components/layout/PublicHeader";
+import LayoutWrapper from "@/components/LayoutWrapper";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { Metadata } from "next";
@@ -20,6 +22,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getServerSession();
+  
+  // This will be handled by the PublicHeader component using client-side routing
 
   return (
     <html lang="en">
@@ -29,7 +33,10 @@ export default async function RootLayout({
         <ErrorBoundary>
           <SessionProvider session={session}>
             <Toaster position="top-right" />
-            {children}
+            <PublicHeader />
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
           </SessionProvider>
         </ErrorBoundary>
       </body>

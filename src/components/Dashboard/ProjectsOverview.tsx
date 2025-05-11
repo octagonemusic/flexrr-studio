@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import {
   FiPlus,
   FiArrowRight,
@@ -299,15 +300,13 @@ export default function ProjectsOverview() {
             <span className="text-sm font-medium">New Project</span>
           </button>
 
-          <a
-            href="https://github.com/octagonemusic/flexrr"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/documentation"
             className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700/30 dark:hover:bg-gray-700/50 rounded-lg transition-colors text-gray-700 dark:text-gray-300"
           >
             <FiExternalLink className="w-6 h-6 mb-2" />
             <span className="text-sm font-medium">Documentation</span>
-          </a>
+          </Link>
 
           {repositories.length > 0 && (
             <button

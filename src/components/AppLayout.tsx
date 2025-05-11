@@ -240,10 +240,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </div>
           )}
 
-          <a
-            href="https://github.com/octagonemusic/flexrr"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/documentation"
             onClick={() => {
               if (window.innerWidth < 768) {
                 setSidebarOpen(false);
@@ -253,7 +251,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           >
             <FiExternalLink className="w-5 h-5" />
             <span>Flexrr Docs</span>
-          </a>
+          </Link>
 
           {/* Logout button */}
           <button
