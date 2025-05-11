@@ -128,7 +128,7 @@ export default function ProjectList({ view }: ProjectListProps) {
         <p className="text-red-600 dark:text-red-300">{message}</p>
         <button
           onClick={() => signIn("github")}
-          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
         >
           <FiGithub className="w-4 h-4" />
           Sign In Again
@@ -160,7 +160,7 @@ export default function ProjectList({ view }: ProjectListProps) {
         </p>
         <button
           onClick={() => router.push("/projects/new")}
-          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors cursor-pointer"
         >
           Create Your First Project
         </button>
@@ -172,9 +172,9 @@ export default function ProjectList({ view }: ProjectListProps) {
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {repositories.length}{" "}
-            {repositories.length === 1 ? "Project" : "Projects"}
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
+            {filteredRepositories.length}{" "}
+            {filteredRepositories.length === 1 ? "Project" : "Projects"}
           </h2>
 
           <div className="flex items-center gap-4">
@@ -193,7 +193,7 @@ export default function ProjectList({ view }: ProjectListProps) {
 
             <button
               onClick={() => router.push("/projects/new")}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors cursor-pointer"
             >
               New Project
             </button>
@@ -218,18 +218,28 @@ export default function ProjectList({ view }: ProjectListProps) {
                 onClick={() => router.push(`/projects/${repo._id}`)}
               >
                 <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <a
-                    href={repo.githubUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <FiGithub className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                  </a>
-                  <button className="p-1 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500">
-                    <FiEdit className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                  </button>
+                  <div className="flex space-x-2">
+                    <a
+                      href={repo.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(repo.githubUrl, '_blank');
+                      }}
+                    >
+                      <FiGithub className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                    </a>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/projects/${repo._id}`);
+                      }}
+                      className="p-1 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 cursor-pointer">
+                      <FiEdit className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="mb-4">
@@ -307,17 +317,20 @@ export default function ProjectList({ view }: ProjectListProps) {
                       href={repo.githubUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                      className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 cursor-pointer"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <FiGithub className="w-4 h-4" />
                     </a>
                     <a
-                      href="#"
+                      href={`https://${repo.name}.vercel.app`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                      onClick={(e) => e.stopPropagation()}
+                      className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`https://${repo.name}.vercel.app`, '_blank');
+                      }}
                     >
                       <FiExternalLink className="w-4 h-4" />
                     </a>

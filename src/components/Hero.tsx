@@ -53,14 +53,14 @@ export default function Hero({ session }: HeroProps) {
                 href="https://github.com/octagonemusic/flexrr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white text-sm font-medium"
+                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white text-sm font-medium cursor-pointer"
               >
                 GitHub
               </a>
               {session ? (
                 <button
                   onClick={() => router.push("/projects")}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium flex items-center space-x-2"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium flex items-center space-x-2 cursor-pointer"
                 >
                   <FiGrid className="w-4 h-4" />
                   <span>Go to Dashboard</span>
@@ -68,7 +68,7 @@ export default function Hero({ session }: HeroProps) {
               ) : (
                 <button
                   onClick={() => signIn("github", { callbackUrl: "/projects" })}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium flex items-center space-x-2"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium flex items-center space-x-2 cursor-pointer"
                 >
                   <FiGithub className="w-4 h-4" />
                   <span>Sign in with GitHub</span>
@@ -116,7 +116,7 @@ export default function Hero({ session }: HeroProps) {
               {session ? (
                 <button
                   onClick={() => router.push("/projects")}
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all cursor-pointer"
                 >
                   <span>Go to Dashboard</span>
                   <FiArrowRight className="w-5 h-5" />
@@ -124,7 +124,7 @@ export default function Hero({ session }: HeroProps) {
               ) : (
                 <button
                   onClick={() => signIn("github", { callbackUrl: "/projects" })}
-                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all cursor-pointer"
                 >
                   <span>Get Started for Free</span>
                   <FiArrowRight className="w-5 h-5" />
@@ -135,7 +135,7 @@ export default function Hero({ session }: HeroProps) {
                 href="https://github.com/octagonemusic/flexrr"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-md transition-colors border border-gray-200 dark:border-gray-700"
+                className="bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-md transition-colors border border-gray-200 dark:border-gray-700 cursor-pointer"
               >
                 <FiGithub className="w-5 h-5" />
                 <span>View on GitHub</span>
@@ -353,7 +353,7 @@ export default function Hero({ session }: HeroProps) {
               {session ? (
                 <button
                   onClick={() => router.push("/projects")}
-                  className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg transition-colors"
+                  className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg transition-colors cursor-pointer"
                 >
                   <FiGrid className="w-5 h-5" />
                   <span>Go to Dashboard</span>
@@ -361,7 +361,7 @@ export default function Hero({ session }: HeroProps) {
               ) : (
                 <button
                   onClick={() => signIn("github", { callbackUrl: "/projects" })}
-                  className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg transition-colors"
+                  className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg transition-colors cursor-pointer"
                 >
                   <FiGithub className="w-5 h-5" />
                   <span>Sign in with GitHub</span>
@@ -396,22 +396,22 @@ export default function Hero({ session }: HeroProps) {
                 <h3 className="text-white font-medium mb-4">Product</h3>
                 <ul className="space-y-2">
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="#" className="hover:text-white transition-colors cursor-pointer">
                       Features
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="#" className="hover:text-white transition-colors cursor-pointer">
                       Pricing
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="#" className="hover:text-white transition-colors cursor-pointer">
                       Roadmap
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="#" className="hover:text-white transition-colors cursor-pointer">
                       Changelog
                     </a>
                   </li>
@@ -422,22 +422,22 @@ export default function Hero({ session }: HeroProps) {
                 <h3 className="text-white font-medium mb-4">Resources</h3>
                 <ul className="space-y-2">
                   <li>
-                    <a href="/documentation" className="hover:text-white transition-colors">
+                    <a href="/documentation" className="hover:text-white transition-colors cursor-pointer">
                       Documentation
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="#" className="hover:text-white transition-colors cursor-pointer">
                       Tutorials
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="#" className="hover:text-white transition-colors cursor-pointer">
                       Blog
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="#" className="hover:text-white transition-colors cursor-pointer">
                       Community
                     </a>
                   </li>
@@ -448,22 +448,22 @@ export default function Hero({ session }: HeroProps) {
                 <h3 className="text-white font-medium mb-4">Company</h3>
                 <ul className="space-y-2">
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="#" className="hover:text-white transition-colors cursor-pointer">
                       About
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="#" className="hover:text-white transition-colors cursor-pointer">
                       Careers
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="#" className="hover:text-white transition-colors cursor-pointer">
                       Contact
                     </a>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <a href="#" className="hover:text-white transition-colors cursor-pointer">
                       Privacy
                     </a>
                   </li>
@@ -477,10 +477,10 @@ export default function Hero({ session }: HeroProps) {
               &copy; {new Date().getFullYear()} Flexrr. All rights reserved.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="hover:text-white transition-colors">
+              <a href="https://github.com/octagonemusic/flexrr" className="hover:text-white transition-colors cursor-pointer">
                 <FiGithub className="w-5 h-5" />
               </a>
-              <a href="#" className="hover:text-white transition-colors">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors cursor-pointer">
                 <span className="sr-only">Twitter</span>
                 <svg
                   className="w-5 h-5"
@@ -491,7 +491,7 @@ export default function Hero({ session }: HeroProps) {
                   <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
                 </svg>
               </a>
-              <a href="#" className="hover:text-white transition-colors">
+              <a href="https://discord.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors cursor-pointer">
                 <span className="sr-only">Discord</span>
                 <svg
                   className="w-5 h-5"

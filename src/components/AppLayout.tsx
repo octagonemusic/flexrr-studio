@@ -181,7 +181,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       >
         {/* ... existing sidebar code ... */}
         <div className="py-4 px-2">
-          <Link href="/projects" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2">
             <Image
               src="/logo.png"
               alt="Flexrr Studio Logo"
@@ -206,7 +206,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     setSidebarOpen(false);
                   }
                 }}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm transition-colors ${
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm transition-colors cursor-pointer ${
                   isActive(item.path)
                     ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300"
                     : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/30"
@@ -247,7 +247,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 setSidebarOpen(false);
               }
             }}
-            className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/30 transition-colors"
+            className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/30 transition-colors cursor-pointer"
           >
             <FiExternalLink className="w-5 h-5" />
             <span>Flexrr Docs</span>
@@ -261,7 +261,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
               }
               handleLogout();
             }}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors mt-2"
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors mt-2 cursor-pointer"
           >
             <FiLogOut className="w-5 h-5" />
             <span>Sign Out</span>
@@ -277,7 +277,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             {/* Mobile menu button */}
             <button 
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="mr-3 md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded"
+              className="mr-3 md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded cursor-pointer"
               aria-label="Toggle sidebar"
             >
               {sidebarOpen ? (
@@ -298,7 +298,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <div className="relative" ref={settingsRef}>
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
             >
               <FiSettings className="w-5 h-5" />
             </button>
@@ -313,7 +313,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                       );
                       setShowSettings(false);
                     }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center cursor-pointer"
                   >
                     <FiUser className="w-4 h-4 mr-2" />
                     <span>Profile Settings</span>
@@ -323,7 +323,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                     href="https://github.com/octagonemusic/flexrr/issues"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center cursor-pointer"
                     onClick={() => setShowSettings(false)}
                   >
                     <FiHelpCircle className="w-4 h-4 mr-2" />
@@ -334,7 +334,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center cursor-pointer"
                   >
                     <FiLogOut className="w-4 h-4 mr-2" />
                     <span>Sign Out</span>

@@ -309,7 +309,7 @@ export default function NewProject() {
                     <input
                       {...register("name")}
                       type="text"
-                      className={inputClasses}
+                      className={`${inputClasses} cursor-pointer`}
                       disabled={loading}
                       aria-invalid={errors.name ? "true" : "false"}
                       placeholder="my-project-name"
@@ -480,7 +480,7 @@ export default function NewProject() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold py-3 px-6 rounded-lg transition-colors mt-8 flex items-center justify-center"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-bold py-3 px-6 rounded-lg transition-colors mt-8 flex items-center justify-center cursor-pointer"
             >
               {loading ? (
                 <>
@@ -508,7 +508,7 @@ export default function NewProject() {
               <button
                 onClick={handleCopy}
                 disabled={copied}
-                className="mt-4 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-500 text-white px-4 py-2 rounded transition-colors"
+                className="mt-4 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-500 text-white px-4 py-2 rounded transition-colors cursor-pointer"
               >
                 {copied ? "Copied!" : "Copy to Clipboard"}
               </button>
@@ -518,14 +518,14 @@ export default function NewProject() {
                 href="https://vercel.com/new"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block bg-black hover:bg-gray-900 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+                className="inline-block bg-black hover:bg-gray-900 text-white font-bold py-2 px-6 rounded-lg transition-colors cursor-pointer"
               >
                 Deploy on Vercel →
               </a>
               <div>
                 <button
                   onClick={() => router.push("/projects")}
-                  className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors mt-4"
+                  className="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors mt-4 cursor-pointer"
                 >
                   Go to Dashboard
                 </button>

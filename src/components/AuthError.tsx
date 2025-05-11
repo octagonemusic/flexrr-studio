@@ -44,7 +44,7 @@ export default function AuthError({
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={handleSignIn}
-            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium flex items-center justify-center"
+            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium flex items-center justify-center cursor-pointer"
           >
             Sign In Again
           </button>
@@ -52,7 +52,7 @@ export default function AuthError({
           {onRetry && (
             <button
               onClick={onRetry}
-              className="px-5 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center justify-center"
+              className="px-5 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-lg font-medium flex items-center justify-center cursor-pointer"
             >
               <FiRefreshCw className="mr-2 w-4 h-4" />
               Retry

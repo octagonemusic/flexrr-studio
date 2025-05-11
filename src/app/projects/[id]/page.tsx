@@ -362,7 +362,7 @@ export default function ProjectDetails() {
                 </h1>
                 <button
                   onClick={() => setIsRenaming(!isRenaming)}
-                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 cursor-pointer"
                 >
                   <FiEdit className="w-5 h-5" />
                 </button>
@@ -390,16 +390,16 @@ export default function ProjectDetails() {
                 href={project.githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-gray-700 dark:text-gray-200 transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-gray-700 dark:text-gray-200 transition-colors cursor-pointer"
               >
                 <FiGithub className="w-5 h-5" />
                 <span>View on GitHub</span>
               </a>
               <a
-                href="https://vercel.com/new"
+                href={`https://vercel.com/new/git/external?repository=${encodeURIComponent(project.githubUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 px-4 py-2 bg-black hover:bg-gray-900 text-white rounded-lg transition-colors"
+                className="flex items-center space-x-2 px-4 py-2 bg-black hover:bg-gray-900 text-white rounded-lg transition-colors cursor-pointer"
               >
                 <FiExternalLink className="w-5 h-5" />
                 <span>Deploy</span>
@@ -442,7 +442,7 @@ export default function ProjectDetails() {
                   <button
                     type="submit"
                     disabled={isRenamingLoading}
-                    className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-md transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-md transition-colors cursor-pointer"
                   >
                     <FiCheck className="w-4 h-4" />
                     <span>
@@ -452,7 +452,7 @@ export default function ProjectDetails() {
                   <button
                     type="button"
                     onClick={() => setIsRenaming(false)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md transition-colors cursor-pointer"
                   >
                     <FiX className="w-4 h-4" />
                     <span>Cancel</span>
@@ -524,7 +524,7 @@ export default function ProjectDetails() {
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-white transition-colors ${
                 !latestVersion || latestVersion === project.version
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700"
+                  : "bg-green-600 hover:bg-green-700 cursor-pointer"
               }`}
             >
               {isUpdating ? (
@@ -573,7 +573,7 @@ export default function ProjectDetails() {
                   <button
                     onClick={handleCopy}
                     disabled={copied}
-                    className="flex items-center space-x-2 px-3 py-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white text-sm rounded-md transition-colors"
+                    className="flex items-center space-x-2 px-3 py-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white text-sm rounded-md transition-colors cursor-pointer"
                   >
                     {copied ? (
                       <>
@@ -609,19 +609,19 @@ export default function ProjectDetails() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <a
-                    href="https://vercel.com/new"
+                    href={`https://vercel.com/new/git/external?repository=${encodeURIComponent(project.githubUrl)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center space-x-2 px-4 py-2 bg-black hover:bg-gray-900 text-white rounded-lg transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-black hover:bg-gray-900 text-white rounded-lg transition-colors cursor-pointer"
                   >
                     <FiExternalLink className="w-5 h-5" />
                     <span>Deploy on Vercel</span>
                   </a>
                   <a
-                    href="https://www.netlify.com/new"
+                    href={`https://app.netlify.com/start/deploy?repository=${encodeURIComponent(project.githubUrl)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center space-x-2 px-4 py-2 bg-[#00AD9F] hover:bg-[#00968B] text-white rounded-lg transition-colors"
+                    className="flex items-center space-x-2 px-4 py-2 bg-[#00AD9F] hover:bg-[#00968B] text-white rounded-lg transition-colors cursor-pointer"
                   >
                     <FiExternalLink className="w-5 h-5" />
                     <span>Deploy on Netlify</span>
@@ -638,23 +638,33 @@ export default function ProjectDetails() {
             Project Actions
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <button className="flex flex-col items-center justify-center p-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors">
+            <a
+              href={project.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center p-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer"
+            >
               <FiGithub className="w-8 h-8 text-gray-700 dark:text-gray-300 mb-2" />
               <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
                 View Code
               </span>
-            </button>
+            </a>
 
-            <button className="flex flex-col items-center justify-center p-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors">
+            <a
+              href={`https://${project.name}.vercel.app`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center p-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors cursor-pointer"
+            >
               <FiExternalLink className="w-8 h-8 text-gray-700 dark:text-gray-300 mb-2" />
               <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
                 Open Site
               </span>
-            </button>
+            </a>
 
             <button
               onClick={() => setDeleteDialogOpen(true)}
-              className="flex flex-col items-center justify-center p-4 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+              className="flex flex-col items-center justify-center p-4 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer"
             >
               <FiTrash2 className="w-8 h-8 text-red-600 dark:text-red-400 mb-2" />
               <span className="text-sm font-medium text-red-700 dark:text-red-300">
@@ -698,7 +708,7 @@ export default function ProjectDetails() {
                     type="button"
                     disabled={isDeleting}
                     onClick={() => setDeleteDialogOpen(false)}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md text-gray-800 dark:text-gray-200"
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md text-gray-800 dark:text-gray-200 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -706,7 +716,7 @@ export default function ProjectDetails() {
                     type="button"
                     disabled={isDeleting}
                     onClick={handleDelete}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-md flex items-center space-x-2"
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-md flex items-center space-x-2 cursor-pointer"
                   >
                     {isDeleting ? (
                       <>

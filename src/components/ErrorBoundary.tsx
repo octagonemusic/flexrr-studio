@@ -144,13 +144,13 @@ export default function ErrorBoundary({ children }: ErrorBoundaryProps) {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={handleRedirect}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors cursor-pointer"
             >
               {errorDetails?.type === "auth" ? "Go to Login Page" : "Try Again"}
             </button>
             <button
               onClick={resetError}
-              className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors cursor-pointer"
             >
               Dismiss
             </button>

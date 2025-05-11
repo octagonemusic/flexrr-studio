@@ -137,7 +137,7 @@ export default function ProjectsOverview() {
         <p className="text-red-600 dark:text-red-300">{error.message}</p>
         <button
           onClick={() => signIn("github")}
-          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
         >
           <FiGithub className="w-4 h-4" />
           Sign In Again
@@ -161,7 +161,7 @@ export default function ProjectsOverview() {
         </p>
         <button
           onClick={() => router.push("/projects/new")}
-          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors inline-flex items-center"
+          className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors inline-flex items-center cursor-pointer"
         >
           <FiPlus className="w-5 h-5 mr-2" />
           Create Your First Project
@@ -237,7 +237,7 @@ export default function ProjectsOverview() {
           </h2>
           <button
             onClick={() => router.push("/projects")}
-            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium flex items-center"
+            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm font-medium flex items-center cursor-pointer"
           >
             View All
             <FiArrowRight className="ml-1 w-4 h-4" />
@@ -294,7 +294,7 @@ export default function ProjectsOverview() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           <button
             onClick={() => router.push("/projects/new")}
-            className="flex flex-col items-center justify-center p-4 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30 rounded-lg transition-colors text-indigo-700 dark:text-indigo-300"
+            className="flex flex-col items-center justify-center p-4 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30 rounded-lg transition-colors text-indigo-700 dark:text-indigo-300 cursor-pointer"
           >
             <FiPlus className="w-6 h-6 mb-2" />
             <span className="text-sm font-medium">New Project</span>
@@ -302,7 +302,7 @@ export default function ProjectsOverview() {
 
           <Link
             href="/documentation"
-            className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700/30 dark:hover:bg-gray-700/50 rounded-lg transition-colors text-gray-700 dark:text-gray-300"
+            className="flex flex-col items-center justify-center p-4 bg-gray-50 hover:bg-gray-100 dark:bg-gray-700/30 dark:hover:bg-gray-700/50 rounded-lg transition-colors text-gray-700 dark:text-gray-300 cursor-pointer"
           >
             <FiExternalLink className="w-6 h-6 mb-2" />
             <span className="text-sm font-medium">Documentation</span>
@@ -311,7 +311,7 @@ export default function ProjectsOverview() {
           {repositories.length > 0 && (
             <button
               onClick={() => router.push(`/projects/${repositories[0]._id}`)}
-              className="flex flex-col items-center justify-center p-4 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 rounded-lg transition-colors text-green-700 dark:text-green-300"
+              className="flex flex-col items-center justify-center p-4 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 rounded-lg transition-colors text-green-700 dark:text-green-300 cursor-pointer"
             >
               <FiCheck className="w-6 h-6 mb-2" />
               <span className="text-sm font-medium">Latest Project</span>
@@ -330,7 +330,7 @@ export default function ProjectsOverview() {
                   }
                 }
               }}
-              className="flex flex-col items-center justify-center p-4 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:hover:bg-amber-900/30 rounded-lg transition-colors text-amber-700 dark:text-amber-300"
+              className="flex flex-col items-center justify-center p-4 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:hover:bg-amber-900/30 rounded-lg transition-colors text-amber-700 dark:text-amber-300 cursor-pointer"
             >
               <FiRefreshCw className="w-6 h-6 mb-2" />
               <span className="text-sm font-medium">Update Projects</span>

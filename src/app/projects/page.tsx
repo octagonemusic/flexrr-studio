@@ -45,6 +45,7 @@ export default function Dashboard() {
         <AuthError 
           message="You need to be signed in to view your projects."
           onRetry={() => signIn("github")}
+          className="cursor-pointer"
         />
       </AppLayout>
     );
@@ -65,7 +66,7 @@ export default function Dashboard() {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setView("grid")}
-              className={`p-2 rounded-md ${
+              className={`p-2 rounded-md cursor-pointer ${
                 view === "grid"
                   ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300"
                   : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
@@ -75,7 +76,7 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => setView("list")}
-              className={`p-2 rounded-md ${
+              className={`p-2 rounded-md cursor-pointer ${
                 view === "list"
                   ? "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-300"
                   : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
@@ -88,8 +89,8 @@ export default function Dashboard() {
 
         <Tabs defaultValue="overview">
           <TabsList className="mb-8">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="all-projects">All Projects</TabsTrigger>
+            <TabsTrigger value="overview" className="cursor-pointer">Overview</TabsTrigger>
+            <TabsTrigger value="all-projects" className="cursor-pointer">All Projects</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">

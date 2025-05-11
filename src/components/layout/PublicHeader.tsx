@@ -41,7 +41,7 @@ export default function PublicHeader() {
           <div className="hidden md:flex items-center space-x-8">
             <Link
               href="/documentation"
-              className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white text-sm font-medium"
+              className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white text-sm font-medium cursor-pointer"
             >
               Documentation
             </Link>
@@ -49,14 +49,14 @@ export default function PublicHeader() {
               href="https://github.com/octagonemusic/flexrr"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white text-sm font-medium"
+              className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white text-sm font-medium cursor-pointer"
             >
               GitHub
             </a>
             {session ? (
               <button
                 onClick={() => router.push("/projects")}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium flex items-center space-x-2"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium flex items-center space-x-2 cursor-pointer"
               >
                 <FiGrid className="w-4 h-4" />
                 <span>Go to Dashboard</span>
@@ -64,7 +64,7 @@ export default function PublicHeader() {
             ) : (
               <button
                 onClick={() => signIn("github", { callbackUrl: "/projects" })}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium flex items-center space-x-2"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium flex items-center space-x-2 cursor-pointer"
               >
                 <FiGithub className="w-4 h-4" />
                 <span>Sign in with GitHub</span>
@@ -76,7 +76,7 @@ export default function PublicHeader() {
           <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
+              className="p-2 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white cursor-pointer"
             >
               {mobileMenuOpen ? (
                 <FiX className="h-6 w-6" />
@@ -99,7 +99,7 @@ export default function PublicHeader() {
           <div className="container mx-auto px-4 py-3 space-y-3 bg-white dark:bg-gray-900 shadow-lg">
             <Link
               href="/documentation"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 cursor-pointer"
               onClick={() => setMobileMenuOpen(false)}
             >
               Documentation
@@ -120,7 +120,7 @@ export default function PublicHeader() {
                     router.push("/projects");
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full text-left block px-3 py-2 rounded-md text-base font-medium bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="block px-3 py-2 rounded-md text-base font-medium bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
                 >
                   Go to Dashboard
                 </button>
