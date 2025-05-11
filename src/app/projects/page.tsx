@@ -45,7 +45,6 @@ export default function Dashboard() {
         <AuthError 
           message="You need to be signed in to view your projects."
           onRetry={() => signIn("github")}
-          className="cursor-pointer"
         />
       </AppLayout>
     );
