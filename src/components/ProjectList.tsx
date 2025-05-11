@@ -47,8 +47,8 @@ export default function ProjectList({ view }: ProjectListProps) {
 
         // Fetch data
         const [reposResponse, versionResponse] = await Promise.all([
-          fetchWithAuth("/api/repositories", undefined, 10000),
-          fetchWithAuth("/api/repositories/latest-version", undefined, 10000),
+          fetchWithAuth("/api/repositories"),
+          fetchWithAuth("/api/repositories/latest-version"),
         ]);
 
         if (!reposResponse.ok) {

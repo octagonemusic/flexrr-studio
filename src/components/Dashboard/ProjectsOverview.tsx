@@ -52,8 +52,8 @@ export default function ProjectsOverview() {
         
         // Fetch both resources in parallel
         const [reposResponse, versionResponse] = await Promise.all([
-          fetchWithAuth("/api/repositories", undefined, 5000),
-          fetchWithAuth("/api/repositories/latest-version", undefined, 5000)
+          fetchWithAuth("/api/repositories"),
+          fetchWithAuth("/api/repositories/latest-version")
         ]);
         
         if (!reposResponse.ok) {

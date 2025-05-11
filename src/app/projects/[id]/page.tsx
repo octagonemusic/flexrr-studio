@@ -159,7 +159,7 @@ export default function ProjectDetails() {
 
       const response = await fetchWithAuth(`/api/repositories/${project._id}/update`, {
         method: "POST",
-      });
+      }, null); // No timeout for update operation
 
       if (!response.ok) {
         if (response.status === 401) {

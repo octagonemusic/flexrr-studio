@@ -8,6 +8,11 @@ export async function middleware(request: NextRequest) {
     if (request.nextUrl.pathname.startsWith("/api")) {
       return NextResponse.next();
     }
+    
+    // Allow access to documentation page without authentication
+    if (request.nextUrl.pathname.startsWith("/documentation")) {
+      return NextResponse.next();
+    }
 
     const token = await getToken({
       req: request,

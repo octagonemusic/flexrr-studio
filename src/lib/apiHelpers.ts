@@ -10,22 +10,24 @@ export function handleApiAuthError() {
  * Simple wrapper for fetch with timeout
  * @param url The URL to fetch
  * @param options Fetch options
- * @param timeoutMs Timeout in milliseconds (default: 5000)
+ * @param timeoutMs Timeout in milliseconds (default: 15000)
  * @param progressCallback Optional callback for progress updates
  * @returns Promise resolving to fetch response
  */
 // Configuration for API request timeouts
 const endpointTimeouts = {
-  // Endpoints that need longer timeouts
-  '/api/repositories/create': 30000, // 30 seconds for repository creation
-  '/api/repositories/update': 30000, // 30 seconds for updates
-  'delete': 20000 // 20 seconds for repository deletion
+  // Endpoints with no timeouts (null to disable timeout)
+  '/api/repositories/create': null, // No timeout for repository creation
+  '/api/repositories/[id]/update': null, // No timeout for updates
+  // Endpoints with longer timeouts
+  'delete': 30000, // 30 seconds for repository deletion
+  '/api/repositories/[id]/delete': 30000 // 30 seconds for repository deletion
 };
 
 export async function fetchWithAuth(
   url: string, 
   options?: RequestInit, 
-  timeoutMs: number = 5000, 
+  timeoutMs: number | null = 15000, 
   progressCallback?: (status: string) => void
 ): Promise<Response> {
   // Get the endpoint without query params
@@ -46,14 +48,14 @@ export async function fetchWithAuth(
     }
   }
   
-  // Create abort controller for timeout
+  // Create abort controller
   const controller = new AbortController();
   const fetchOptions = options ? { ...options, signal: controller.signal } : { signal: controller.signal };
   
-  // Set up timeout if applicable
-  const timeoutId = setTimeout(() => {
+  // Set up timeout if applicable (null means no timeout)
+  const timeoutId = effectiveTimeout !== null ? setTimeout(() => {
     controller.abort();
-  }, effectiveTimeout);
+  }, effectiveTimeout) : null;
   
   try {
     const response = await fetch(url, fetchOptions);
@@ -67,10 +69,12 @@ export async function fetchWithAuth(
     return response;
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error(`Request to ${url} timed out after ${effectiveTimeout}ms`);
+      throw new Error(`Request to ${url} timed out after ${effectiveTimeout || 'unknown'}ms`);
     }
     throw error;
   } finally {
-    clearTimeout(timeoutId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
   }
 }

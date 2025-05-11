@@ -84,7 +84,7 @@ export default function NewProject() {
         });
       }, 3000);
 
-      // Increase timeout for project creation which involves multiple GitHub API calls
+      // Project creation involves multiple GitHub API calls and has no timeout
       const response = await fetchWithAuth(
         "/api/repositories/create",
         {
@@ -92,7 +92,7 @@ export default function NewProject() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         },
-        60000,
+        null, // No timeout for project creation
         (status) => {
           setProgressStatus(status);
         },

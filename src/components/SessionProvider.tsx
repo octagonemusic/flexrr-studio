@@ -17,7 +17,7 @@ function AuthCheck({ children }: { children: React.ReactNode }) {
 
   // Simplified check for protected routes
   useEffect(() => {
-    if (pathname === "/" || status === "loading") return;
+    if (pathname === "/" || pathname.startsWith("/documentation") || status === "loading") return;
     
     if (status === "unauthenticated") {
       router.push("/");
