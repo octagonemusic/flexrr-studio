@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { fetchWithAuth } from "@/lib/apiHelpers";
 
 const formSchema = z.object({
   name: z
@@ -63,7 +64,7 @@ export default function NewProject() {
     setError(null);
 
     try {
-      const response = await fetch("/api/repositories/create", {
+      const response = await fetchWithAuth("/api/repositories/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

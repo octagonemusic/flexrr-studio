@@ -12,10 +12,16 @@ import {
   FiLayout,
   FiEye,
   FiCloud,
+  FiGrid,
 } from "react-icons/fi";
 import Image from "next/image";
+import { Session } from "next-auth";
 
-export default function Hero() {
+interface HeroProps {
+  session: Session | null;
+}
+
+export default function Hero({ session }: HeroProps) {
   const router = useRouter();
 
   return (
@@ -53,13 +59,23 @@ export default function Hero() {
               >
                 GitHub
               </a>
-              <button
-                onClick={() => signIn("github", { callbackUrl: "/projects" })}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium flex items-center space-x-2"
-              >
-                <FiGithub className="w-4 h-4" />
-                <span>Sign in with GitHub</span>
-              </button>
+              {session ? (
+                <button
+                  onClick={() => router.push("/projects")}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium flex items-center space-x-2"
+                >
+                  <FiGrid className="w-4 h-4" />
+                  <span>Go to Dashboard</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => signIn("github", { callbackUrl: "/projects" })}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm text-sm font-medium flex items-center space-x-2"
+                >
+                  <FiGithub className="w-4 h-4" />
+                  <span>Sign in with GitHub</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -99,13 +115,23 @@ export default function Hero() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="flex flex-wrap justify-center gap-4 mb-16"
             >
-              <button
-                onClick={() => signIn("github", { callbackUrl: "/projects" })}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all"
-              >
-                <span>Get Started for Free</span>
-                <FiArrowRight className="w-5 h-5" />
-              </button>
+              {session ? (
+                <button
+                  onClick={() => router.push("/projects")}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all"
+                >
+                  <span>Go to Dashboard</span>
+                  <FiArrowRight className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => signIn("github", { callbackUrl: "/projects" })}
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all"
+                >
+                  <span>Get Started for Free</span>
+                  <FiArrowRight className="w-5 h-5" />
+                </button>
+              )}
 
               <a
                 href="https://github.com/octagonemusic/flexrr"
@@ -326,13 +352,23 @@ export default function Hero() {
               </p>
             </div>
             <div>
-              <button
-                onClick={() => signIn("github", { callbackUrl: "/projects" })}
-                className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg transition-colors"
-              >
-                <FiGithub className="w-5 h-5" />
-                <span>Sign in with GitHub</span>
-              </button>
+              {session ? (
+                <button
+                  onClick={() => router.push("/projects")}
+                  className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg transition-colors"
+                >
+                  <FiGrid className="w-5 h-5" />
+                  <span>Go to Dashboard</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => signIn("github", { callbackUrl: "/projects" })}
+                  className="bg-white text-indigo-600 hover:bg-gray-100 px-8 py-4 rounded-full font-medium flex items-center space-x-2 shadow-lg transition-colors"
+                >
+                  <FiGithub className="w-5 h-5" />
+                  <span>Sign in with GitHub</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

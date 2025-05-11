@@ -12,6 +12,7 @@ import {
   FiRefreshCw,
   FiExternalLink,
 } from "react-icons/fi";
+import { fetchWithAuth } from "@/lib/apiHelpers";
 
 interface Repository {
   _id: string;
@@ -45,7 +46,7 @@ export default function ProjectsOverview() {
       try {
         setIsLoading(true);
         // Fetch repositories
-        const reposResponse = await fetch("/api/repositories");
+        const reposResponse = await fetchWithAuth("/api/repositories");
         if (!reposResponse.ok) throw new Error("Failed to fetch projects");
         const reposData = await reposResponse.json();
 
@@ -62,7 +63,7 @@ export default function ProjectsOverview() {
         setRecentRepositories(sortedRepos.slice(0, 3));
 
         // Fetch latest version
-        const versionResponse = await fetch("/api/repositories/latest-version");
+        const versionResponse = await fetchWithAuth("/api/repositories/latest-version");
         if (versionResponse.ok) {
           const { version } = await versionResponse.json();
           setLatestVersion(version);

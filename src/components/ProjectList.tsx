@@ -13,6 +13,7 @@ import {
   FiRefreshCw,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
+import { fetchWithAuth } from "@/lib/apiHelpers";
 
 interface Repository {
   _id: string;
@@ -42,8 +43,8 @@ export default function ProjectList({ view }: ProjectListProps) {
         setError(null);
 
         const [reposResponse, versionResponse] = await Promise.all([
-          fetch("/api/repositories"),
-          fetch("/api/repositories/latest-version"),
+          fetchWithAuth("/api/repositories"),
+          fetchWithAuth("/api/repositories/latest-version"),
         ]);
 
         if (!reposResponse.ok) {

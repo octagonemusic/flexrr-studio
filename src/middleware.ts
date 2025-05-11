@@ -35,11 +35,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
-    // If user is authenticated and tries to access the login page,
-    // redirect them to the dashboard
-    if (hasValidSession && isAuthPage) {
-      return NextResponse.redirect(new URL("/projects", request.url));
-    }
+    // No longer redirect authenticated users from home page to dashboard
+    // Allow authenticated users to access the home page
 
     return NextResponse.next();
   } catch (error) {

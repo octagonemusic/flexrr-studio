@@ -23,6 +23,7 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
+import { fetchWithAuth } from "@/lib/apiHelpers";
 import {
   Dialog,
   DialogContent,
@@ -86,7 +87,7 @@ export default function ProjectDetails() {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch(`/api/repositories/${params.id}`);
+      const response = await fetchWithAuth(`/api/repositories/${params.id}`);
       if (!response.ok) {
         throw new Error("Failed to fetch project details");
       }
@@ -102,7 +103,7 @@ export default function ProjectDetails() {
 
   const fetchLatestVersion = async () => {
     try {
-      const response = await fetch("/api/repositories/latest-version");
+      const response = await fetchWithAuth("/api/repositories/latest-version");
       if (!response.ok) {
         throw new Error("Failed to fetch latest version");
       }
@@ -146,7 +147,7 @@ export default function ProjectDetails() {
       setIsUpdating(true);
       toast.loading("Updating project...", { id: "update-toast" });
 
-      const response = await fetch(`/api/repositories/${project._id}/update`, {
+      const response = await fetchWithAuth(`/api/repositories/${project._id}/update`, {
         method: "POST",
       });
 
@@ -173,7 +174,7 @@ export default function ProjectDetails() {
       setIsRenamingLoading(true); // Use the new loading state
       toast.loading("Renaming project...", { id: "rename-toast" });
 
-      const response = await fetch(`/api/repositories/${project._id}/rename`, {
+      const response = await fetchWithAuth(`/api/repositories/${project._id}/rename`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -207,7 +208,7 @@ export default function ProjectDetails() {
       setIsDeleting(true);
       setDeleteError(null);
 
-      const response = await fetch(`/api/repositories/${project._id}/delete`, {
+      const response = await fetchWithAuth(`/api/repositories/${project._id}/delete`, {
         method: "DELETE",
       });
 
@@ -241,7 +242,7 @@ export default function ProjectDetails() {
     if (!project?._id) return;
 
     try {
-      const response = await fetch(`/api/repositories/${project._id}/check`);
+      const response = await fetchWithAuth(`/api/repositories/${project._id}/check`);
       if (response.ok) {
         const data = await response.json();
         if (!data.exists) {

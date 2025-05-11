@@ -1,17 +1,51 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/options"; // Add this import
+import { authOptions } from "../auth/[...nextauth]/options";
 import { connectDB } from "@/lib/mongoose";
 import { Repository } from "@/models/Repository";
+import { User } from "@/models/User";
 import { NextResponse } from "next/server";
+import { validateGithubToken } from "@/lib/validateGithubToken";
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions); // Pass authOptions here
+    const session = await getServerSession(authOptions);
     console.log("Session:", session);
 
-    if (!session?.user?.id) {
+    if (!session?.user?.id || !session?.user?.email) {
       console.log("No user ID in session");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Verify token validity
+    if (session.user.accessToken) {
+      const tokenValidation = await validateGithubToken(session.user.accessToken);
+      if (!tokenValidation.valid) {
+        console.log("Access token invalid:", tokenValidation.error);
+        return NextResponse.json(
+          { error: "Invalid access token", code: "token_expired" },
+          { status: 401 }
+        );
+      }
+    } else {
+      // Try to get token from database
+      await connectDB();
+      const user = await User.findOne({ email: session.user.email }).select("+accessToken");
+      
+      if (!user?.accessToken) {
+        return NextResponse.json(
+          { error: "No access token found", code: "no_token" },
+          { status: 401 }
+        );
+      }
+      
+      // Validate the token from database
+      const tokenValidation = await validateGithubToken(user.accessToken);
+      if (!tokenValidation.valid) {
+        return NextResponse.json(
+          { error: "Invalid access token", code: "token_expired" },
+          { status: 401 }
+        );
+      }
     }
 
     await connectDB();
@@ -32,9 +66,21 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions); // Also update this
-    if (!session?.user?.id) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || !session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Verify token validity
+    if (session.user.accessToken) {
+      const tokenValidation = await validateGithubToken(session.user.accessToken);
+      if (!tokenValidation.valid) {
+        console.log("Access token invalid:", tokenValidation.error);
+        return NextResponse.json(
+          { error: "Invalid access token", code: "token_expired" },
+          { status: 401 }
+        );
+      }
     }
 
     const { name, description } = await req.json();

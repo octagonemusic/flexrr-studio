@@ -1,11 +1,11 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState, useRef, useEffect } from "react"; // Add these imports
+import { useState, useRef, useEffect } from "react";
+import { useAuth } from "@/lib/authHandler";
 import {
   FiHome,
   FiGitBranch,
@@ -27,7 +27,7 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const { data: session } = useSession();
+  const { session, signOut } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const [showSettings, setShowSettings] = useState(false); // Add this state
